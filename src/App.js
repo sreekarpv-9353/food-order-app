@@ -1,6 +1,6 @@
 // src/App.js
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
@@ -10,7 +10,7 @@ import { fetchRestaurants } from './redux/slices/restaurantSlice';
 import { fetchUserAddresses } from './redux/slices/addressSlice';
 import Addresses from './pages/Addresses';
 
-import BottomBar from './components/BottomBar'; // Updated import
+import BottomBar from './components/BottomBar';
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,6 +24,8 @@ import './App.css';
 
 function App() {
   const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.auth);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -46,20 +48,38 @@ function App() {
       } else {
         dispatch(setUser(null));
       }
+      setAuthChecked(true);
     });
 
     return () => unsubscribe();
   }, [dispatch]);
 
+  // Show loading while checking authentication
+  if (!authChecked) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <BottomBar /> {/* Replaced Header with BottomBar */}
-        <main className="pb-16"> {/* Added padding for bottom bar */}
+        {/* Conditionally render BottomBar only when user is logged in */}
+        {user && <BottomBar />}
+        
+        <main className={user ? "pb-16" : ""}> {/* Only add padding if user is logged in */}
           <Routes>
+            {/* Public routes - no bottom bar */}
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/faq" element={<FAQ />} />
+            
+            {/* Protected routes - with bottom bar (handled by condition above) */}
             <Route
               path="/"
               element={
