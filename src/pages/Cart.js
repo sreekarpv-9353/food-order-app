@@ -10,7 +10,7 @@ const Cart = () => {
   const { items, restaurantId, type, totalAmount } = useSelector((state) => state.cart);
   const { addresses, selectedAddress } = useSelector((state) => state.address);
   const { user } = useSelector((state) => state.auth);
-  const { loading } = useSelector((state) => state.order);
+  const { loading, error } = useSelector((state) => state.order);
   const { restaurants } = useSelector((state) => state.restaurant);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ const Cart = () => {
       const restaurant = restaurants.find(r => r.id === restaurantId || r.restaurantid === restaurantId);
       return restaurant ? {
         name: restaurant.name,
-        cuisine: restaurant.cuisine,
+        cuisine: "",
         rating: restaurant.rating || '4.2',
         deliveryTime: restaurant.deliveryTime || '30 min',
         costForTwo: restaurant.costForTwo || '250'
@@ -52,36 +52,48 @@ const Cart = () => {
       const city = selectedAddress?.city;
       const villageTown = selectedAddress?.villageTown;
       
-      // Parallel API calls for better performance
-      const [
-        zoneDetails,
-        deliveryAvailable,
-        validation,
-        feeResult,
-        time,
-        zone,
-        tax
-      ] = await Promise.all([
-        settingsService.getMatchedZoneDetails(zipCode, city, villageTown),
-        settingsService.isDeliveryAvailable(zipCode, city, villageTown),
-        settingsService.validateOrder(type, totalAmount, zipCode, city, villageTown),
-        settingsService.getDeliveryFee(type, zipCode, city, villageTown),
-        settingsService.getDeliveryTime(zipCode, city, villageTown),
-        settingsService.getZoneName(zipCode, city, villageTown),
-        settingsService.calculateTax(totalAmount)
-      ]);
-      
-      setMatchedZoneDetails(zoneDetails);
-      setIsDeliveryAvailable(deliveryAvailable);
-      setOrderValidation(validation);
-      setDeliveryFee(feeResult.fee);
-      setDeliveryFeeDetails(feeResult);
-      setDeliveryTime(time);
-      setZoneName(zone);
-      setTaxAmount(tax);
+      if (zipCode && city) {
+        // Parallel API calls for better performance
+        const [
+          zoneDetails,
+          deliveryAvailable,
+          validation,
+          feeResult,
+          time,
+          zone,
+          tax
+        ] = await Promise.all([
+          settingsService.getMatchedZoneDetails(zipCode, city, villageTown),
+          settingsService.isDeliveryAvailable(zipCode, city, villageTown),
+          settingsService.validateOrder(type, totalAmount, zipCode, city, villageTown),
+          settingsService.getDeliveryFee(type, zipCode, city, villageTown),
+          settingsService.getDeliveryTime(zipCode, city, villageTown),
+          settingsService.getZoneName(zipCode, city, villageTown),
+          settingsService.calculateTax(totalAmount)
+        ]);
+        
+        setMatchedZoneDetails(zoneDetails);
+        setIsDeliveryAvailable(deliveryAvailable);
+        setOrderValidation(validation);
+        setDeliveryFee(feeResult.fee);
+        setDeliveryFeeDetails(feeResult);
+        setDeliveryTime(time);
+        setZoneName(zone);
+        setTaxAmount(tax);
+      } else {
+        // Default values when no address is selected
+        const defaultFee = type === 'grocery' ? 20 : 30;
+        setDeliveryFee(defaultFee);
+        setDeliveryFeeDetails({ fee: defaultFee, matchType: 'default' });
+        setTaxAmount(totalAmount * 0.05);
+        setOrderValidation({ valid: true });
+        setDeliveryTime('30-45 min');
+        setZoneName('Standard Delivery');
+        setIsDeliveryAvailable(true);
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
-      // Set default values
+      // Set default values on error
       const defaultFee = type === 'grocery' ? 20 : 30;
       setDeliveryFee(defaultFee);
       setDeliveryFeeDetails({ fee: defaultFee, matchType: 'default' });
@@ -130,86 +142,132 @@ const Cart = () => {
     dispatch(removeFromCart(itemId));
   };
 
-  const handlePlaceOrder = async () => {
-    if (!selectedAddress) {
-      alert('Please select a delivery address');
-      navigate('/addresses');
-      return;
-    }
+ const validateOrderData = () => {
+  if (!user || !user.uid) {
+    throw new Error('Please login to place order');
+  }
 
-    if (!isDeliveryAvailable) {
-      alert('Delivery is not available to your selected address. Please choose a different address.');
-      navigate('/addresses');
-      return;
-    }
+  if (!selectedAddress) {
+    throw new Error('Please select a delivery address');
+  }
 
-    if (!orderValidation.valid) {
-      alert(`Minimum order value for ${type} in ${zoneName} is ₹${orderValidation.minValue}. Please add more items.`);
-      return;
-    }
+  if (!isDeliveryAvailable) {
+    throw new Error('Delivery is not available to your selected address');
+  }
 
-    try {
-      const grandTotal = totalAmount + deliveryFee + taxAmount;
-      const restaurantData = getRestaurantData();
-      const now = new Date().toISOString();
+  if (!orderValidation.valid && orderValidation.isEnabled) {
+    throw new Error(`Minimum order value for ${type} in ${zoneName} is ₹${orderValidation.minValue}`);
+  }
+
+  if (items.length === 0) {
+    throw new Error('Cart cannot be empty');
+  }
+
+  // Validate address structure
+  const requiredAddressFields = ['name', 'street', 'city', 'state', 'zipCode', 'phone'];
+  for (const field of requiredAddressFields) {
+    if (!selectedAddress[field]) {
+      throw new Error(`Invalid address: Missing ${field}`);
+    }
+  }
+};
+
+ const handlePlaceOrder = async () => {
+  try {
+    // Validate all data before proceeding
+    validateOrderData();
+
+    const grandTotal = totalAmount + deliveryFee + taxAmount;
+    const restaurantData = getRestaurantData();
+    
+    console.log('🛒 [Cart] Preparing order payload...');
+    
+    // Create clean order payload
+    const orderPayload = {
+      // User & Order Info
+      userId: user.uid,
+      type: type,
+      restaurantId: restaurantId || null,
       
-      // Calculate items total for verification
-      const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+      // Items
+      items: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        category: item.category || '',
+        image: item.image || ''
+      })),
       
-      await dispatch(placeOrder({
-        userId: user.uid,
-        items,
-        restaurantId,
-        type,
-        orderType: type,
-        
-        // Restaurant Data
-        restaurant: restaurantData,
-        
-        // Pricing Details
-        pricing: {
-          itemsTotal: itemsTotal,
-          subtotal: totalAmount,
-          deliveryFee: deliveryFee,
-          taxAmount: taxAmount,
-          taxPercentage: settings?.taxPercentage || 5,
-          grandTotal: grandTotal,
-          currency: 'INR'
-        },
-        
-        // Order Summary
-        totalAmount: grandTotal,
-        subtotal: totalAmount,
-        deliveryFee,
-        taxAmount,
+      // Pricing Details
+      pricing: {
+        itemsTotal: totalAmount,
+        deliveryFee: deliveryFee,
+        taxAmount: taxAmount,
         taxPercentage: settings?.taxPercentage || 5,
-        
-        // Delivery Information
-        deliveryAddress: selectedAddress,
-        deliveryZone: zoneName,
-        deliveryTime: deliveryTime,
-        matchedZoneType: deliveryFeeDetails.matchType,
-        
-        // Order Status & Timestamps
-        status: 'pending',
-        paymentMethod: 'COD',
-        createdAt: now,
-        updatedAt: now,
-        
-        // Additional Metadata
-        itemCount: items.length,
-        deliveryInstructions: '',
-        customerPhone: selectedAddress.phone,
-        customerName: selectedAddress.name
-      })).unwrap();
+        grandTotal: grandTotal,
+        currency: 'INR'
+      },
       
-      dispatch(clearCart());
-      navigate('/my-orders');
-    } catch (error) {
-      console.error('Order placement failed:', error);
-      alert('Failed to place order. Please try again.');
+      // Restaurant Data (for food orders)
+      ...(type === 'food' && restaurantData && { restaurant: restaurantData }),
+      
+      // Delivery Information
+      deliveryAddress: selectedAddress,
+      deliveryZone: zoneName,
+      deliveryTime: deliveryTime,
+      matchedZoneType: deliveryFeeDetails.matchType,
+      
+      // Order Status
+      paymentMethod: 'COD',
+      
+      // Metadata
+      itemCount: items.length,
+      customerName: selectedAddress.name,
+      customerPhone: selectedAddress.phone
+    };
+
+    console.log('📦 [Cart] Order payload:', orderPayload);
+
+    // Dispatch the order
+    const result = await dispatch(placeOrder(orderPayload)).unwrap();
+    
+    console.log('✅ [Cart] Order placed successfully:', result);
+    
+    // Clear cart and navigate on success
+    dispatch(clearCart());
+    navigate('/my-orders', { 
+      state: { 
+        orderSuccess: true,
+        orderId: result.id 
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ [Cart] Order placement failed:', error);
+    
+    // Get the error message safely
+    const errorMessage = error?.message || 'Failed to place order. Please try again.';
+    
+    // Show specific error messages based on error content
+    if (errorMessage.includes('Please login')) {
+      alert('Please login to place order');
+      navigate('/login');
+    } else if (errorMessage.includes('address') || errorMessage.includes('Address')) {
+      alert(errorMessage);
+      navigate('/addresses');
+    } else if (errorMessage.includes('Minimum order') || errorMessage.includes('minimum')) {
+      alert(errorMessage);
+    } else if (errorMessage.includes('Delivery is not available') || errorMessage.includes('not available')) {
+      alert(errorMessage);
+      navigate('/addresses');
+    } else if (errorMessage.includes('Cart cannot be empty')) {
+      alert(errorMessage);
+    } else {
+      alert(errorMessage);
     }
-  };
+  }
+};
 
   const cartTitle = type === 'grocery' ? 'Grocery Cart' : 'Food Cart';
   const cartIcon = type === 'grocery' ? '🛒' : '🍽️';
@@ -305,6 +363,23 @@ const Cart = () => {
                     ₹{getRestaurantData().costForTwo} for two
                   </span>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {error && (
+          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+            <div className="flex items-start">
+              <span className="text-red-500 text-lg mr-2 flex-shrink-0">❌</span>
+              <div>
+                <p className="text-red-800 font-medium text-sm">
+                  Order Error
+                </p>
+                <p className="text-red-700 text-xs mt-1">
+                  {error}
+                </p>
               </div>
             </div>
           </div>
@@ -416,6 +491,7 @@ const Cart = () => {
                 <p className="text-xs text-gray-600">
                   {selectedAddress.city}, {selectedAddress.state} {selectedAddress.zipCode}
                 </p>
+                <p className="text-xs text-gray-600 mt-1">📞 {selectedAddress.phone}</p>
                 
                 {/* Zone Information */}
                 {isDeliveryAvailable && (

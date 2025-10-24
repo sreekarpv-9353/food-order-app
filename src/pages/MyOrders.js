@@ -434,7 +434,7 @@ const MyOrders = () => {
                     {order.deliveryTime && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Estimated Delivery</span>
-                        <span className="font-medium">{order.deliveryTime}</span>
+                        <span className="font-medium">{`${order.deliveryTime} minutes`}</span>
                       </div>
                     )}
                   </div>

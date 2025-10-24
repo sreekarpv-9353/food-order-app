@@ -9,23 +9,99 @@ export const placeOrder = createAsyncThunk(
     try {
       console.log('🛒 [placeOrder] Placing order with data:', {
         userId: orderData.userId,
-        restaurantId: orderData.restaurantId
+        restaurantId: orderData.restaurantId,
+        type: orderData.type,
+        itemCount: orderData.items?.length
       });
 
-      const docRef = await addDoc(collection(db, 'orders'), {
-        ...orderData,
-        createdAt: new Date().toISOString(),
-        status: 'pending',
-        restaurantId: orderData.restaurantId,
+      // Validate required fields
+      if (!orderData.userId) {
+        throw new Error('User ID is required');
+      }
+
+      if (!orderData.items || orderData.items.length === 0) {
+        throw new Error('Cart cannot be empty');
+      }
+
+      // Create clean order document for Firestore
+      const orderDoc = {
+        // User & Order Info
+        userId: orderData.userId,
         type: orderData.type || 'food',
-        userId: orderData.userId
-      });
+        restaurantId: orderData.restaurantId || null,
+        
+        // Items
+        items: orderData.items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          category: item.category || '',
+          image: item.image || ''
+        })),
+        
+        // Pricing
+        pricing: {
+          itemsTotal: orderData.pricing?.itemsTotal || orderData.totalAmount || 0,
+          deliveryFee: orderData.pricing?.deliveryFee || orderData.deliveryFee || 0,
+          taxAmount: orderData.pricing?.taxAmount || orderData.taxAmount || 0,
+          taxPercentage: orderData.pricing?.taxPercentage || orderData.taxPercentage || 5,
+          grandTotal: orderData.pricing?.grandTotal || orderData.totalAmount || 0,
+          currency: 'INR'
+        },
+        
+        // Address & Delivery
+        deliveryAddress: orderData.deliveryAddress ? {
+          name: orderData.deliveryAddress.name,
+          phone: orderData.deliveryAddress.phone,
+          street: orderData.deliveryAddress.street,
+          villageTown: orderData.deliveryAddress.villageTown,
+          city: orderData.deliveryAddress.city,
+          state: orderData.deliveryAddress.state,
+          zipCode: orderData.deliveryAddress.zipCode,
+          landmark: orderData.deliveryAddress.landmark || ''
+        } : null,
+        
+        deliveryZone: orderData.deliveryZone || 'Standard',
+        deliveryTime: orderData.deliveryTime || '30-45 min',
+        
+        // Restaurant Data (for food orders)
+        ...(orderData.restaurant && {
+          restaurant: {
+            name: orderData.restaurant.name,
+            cuisine: orderData.restaurant.cuisine,
+            rating: orderData.restaurant.rating,
+            deliveryTime: orderData.restaurant.deliveryTime,
+            costForTwo: orderData.restaurant.costForTwo
+          }
+        }),
+        
+        // Order Status
+        status: 'pending',
+        paymentMethod: orderData.paymentMethod || 'COD',
+        
+        // Timestamps
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        
+        // Metadata
+        itemCount: orderData.items.length,
+        customerName: orderData.deliveryAddress?.name || '',
+        customerPhone: orderData.deliveryAddress?.phone || ''
+      };
+
+      console.log('📝 [placeOrder] Final order document:', orderDoc);
+
+      const docRef = await addDoc(collection(db, 'orders'), orderDoc);
       
       console.log('✅ [placeOrder] Order placed successfully with ID:', docRef.id);
-      return { id: docRef.id, ...orderData };
+      return { 
+        id: docRef.id, 
+        ...orderDoc 
+      };
     } catch (error) {
       console.error('❌ [placeOrder] Error:', error);
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message || 'Failed to place order');
     }
   }
 );
@@ -36,11 +112,13 @@ export const fetchUserOrders = createAsyncThunk(
     try {
       console.log('🔍 [fetchUserOrders] Fetching orders for user:', userId);
       
-      // SIMPLE QUERY - NO orderBy to avoid index requirement
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      
       const q = query(
         collection(db, 'orders'),
         where('userId', '==', userId)
-        // REMOVED: orderBy('createdAt', 'desc')
       );
       
       const querySnapshot = await getDocs(q);
@@ -49,20 +127,13 @@ export const fetchUserOrders = createAsyncThunk(
       let orders = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        console.log('📦 [fetchUserOrders] Order:', {
-          id: doc.id,
-          status: data.status,
-          userId: data.userId,
-          restaurantId: data.restaurantId,
-          createdAt: data.createdAt
-        });
         orders.push({ 
           id: doc.id, 
           ...data
         });
       });
       
-      // MANUAL SORTING instead of Firestore orderBy
+      // Manual sorting by createdAt
       orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
       console.log('✅ [fetchUserOrders] Total orders fetched:', orders.length);
@@ -80,11 +151,13 @@ export const refreshUserOrders = createAsyncThunk(
     try {
       console.log('🔄 [refreshUserOrders] Force refreshing orders for user:', userId);
       
-      // SIMPLE QUERY - NO orderBy to avoid index requirement
+      if (!userId) {
+        throw new Error('User ID is required');
+      }
+      
       const q = query(
         collection(db, 'orders'),
         where('userId', '==', userId)
-        // REMOVED: orderBy('createdAt', 'desc')
       );
       
       const querySnapshot = await getDocs(q);
@@ -99,7 +172,7 @@ export const refreshUserOrders = createAsyncThunk(
         });
       });
       
-      // MANUAL SORTING instead of Firestore orderBy
+      // Manual sorting by createdAt
       orders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       
       console.log('✅ [refreshUserOrders] Orders refreshed:', orders.length);
@@ -130,6 +203,9 @@ const orderSlice = createSlice({
     clearOrders: (state) => {
       state.orders = [];
       state.lastRefreshed = null;
+    },
+    addOrder: (state, action) => {
+      state.orders.unshift(action.payload);
     }
   },
   extraReducers: (builder) => {
@@ -143,6 +219,7 @@ const orderSlice = createSlice({
         state.loading = false;
         state.orders.unshift(action.payload);
         state.lastRefreshed = new Date().toISOString();
+        state.error = null;
       })
       .addCase(placeOrder.rejected, (state, action) => {
         state.loading = false;
@@ -181,5 +258,5 @@ const orderSlice = createSlice({
   },
 });
 
-export const { clearError, forceRefreshOrders, clearOrders } = orderSlice.actions;
+export const { clearError, forceRefreshOrders, clearOrders, addOrder } = orderSlice.actions;
 export default orderSlice.reducer;
