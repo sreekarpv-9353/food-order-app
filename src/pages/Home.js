@@ -51,10 +51,6 @@ const Home = () => {
     }
   }, [user, dispatch, activeTab]);
 
-  // useEffect(() => {
-  //   loadMinOrderInfo();
-  // }, [activeTab]);
-
   // Clear search when switching tabs
   useEffect(() => {
     setSearchQuery('');
@@ -168,69 +164,61 @@ const Home = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4">
       {/* Header with Title and Refresh */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-900">
           {activeTab === 'food' ? 'Food Delivery' : 'Grocery Delivery'}
         </h1>
         <button
           onClick={refreshData}
-          className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 transition-colors"
+          className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors"
         >
-          🔄 Refresh
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
         </button>
       </div>
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-6">
+      {/* Tabs - Mobile Optimized */}
+      <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm border border-gray-100">
         <button
-          className={`py-2 px-4 font-medium ${
+          className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 ${
             activeTab === 'food'
-              ? 'border-b-2 border-orange-500 text-orange-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-orange-500 text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-50'
           }`}
           onClick={() => setActiveTab('food')}
         >
-          🍽️ Food
+          <span className="text-lg">🍽️</span>
+          <span className="text-sm font-medium">Food</span>
         </button>
         <button
-          className={`py-2 px-4 font-medium ${
+          className={`flex-1 py-3 px-4 font-medium rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 ${
             activeTab === 'grocery'
-              ? 'border-b-2 border-orange-500 text-orange-600'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-orange-500 text-white shadow-sm'
+              : 'text-gray-600 hover:bg-gray-50'
           }`}
           onClick={() => setActiveTab('grocery')}
         >
-          🛒 Grocery
+          <span className="text-lg">🛒</span>
+          <span className="text-sm font-medium">Grocery</span>
         </button>
       </div>
 
-      {/* Minimum Order Info Banner */}
-      {/* {isMinOrderEnabled && currentMinOrder > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center justify-center">
-            <span className="text-blue-500 mr-2">ℹ️</span>
-            <p className="text-blue-800 text-sm">
-              Minimum order value for {activeTab} is <strong>₹{currentMinOrder}</strong>
-            </p>
-          </div>
-        </div>
-      )} */}
-
       {/* Search Bar */}
-      <div className="mb-6 mx-8">
+      <div className="mb-4">
         <div className="relative w-full">
           <input
             type="text"
             placeholder={
               activeTab === 'food'
-                ? 'Search restaurants by name or cuisine...'
-                : 'Search grocery items by name or category...'
+                ? 'Search restaurants...'
+                : 'Search grocery items...'
             }
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-3 pl-12 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+            className="w-full px-4 py-3 pl-12 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
           />
           {/* Search Icon */}
           <svg
@@ -261,7 +249,7 @@ const Home = () => {
         
         {/* Search Results Info */}
         {searchQuery && (
-          <div className="mt-2 text-sm text-gray-600">
+          <div className="mt-2 text-xs text-gray-600">
             {activeTab === 'food' ? (
               <span>
                 Found <strong>{foodRestaurants.length}</strong> restaurant(s) matching "{searchQuery}"
@@ -277,53 +265,59 @@ const Home = () => {
 
       {/* Mixed Cart Warning */}
       {isMixedCart && (
-        <div className="mb-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-yellow-800 text-sm">
+        <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+          <p className="text-yellow-800 text-xs">
             ⚠️ You have {cartType} items in your cart. Adding {activeTab} items will clear your current cart.
           </p>
         </div>
       )}
 
+      {/* Results Count */}
+      <div className="mb-3">
+        <p className="text-gray-600 text-sm">
+          {activeTab === 'food' 
+            ? `${foodRestaurants.length} ${foodRestaurants.length === 1 ? 'restaurant' : 'restaurants'} available`
+            : `${filteredGroceryItems.length} ${filteredGroceryItems.length === 1 ? 'item' : 'items'} available`
+          }
+        </p>
+      </div>
+
       {/* ✅ FOOD SECTION */}
       {activeTab === 'food' && (
-        <div>
-          <p className="text-gray-600 mb-4">
-            Showing {foodRestaurants.length} {foodRestaurants.length === 1 ? 'restaurant' : 'restaurants'}
-          </p>
+        <div className="space-y-3">
+          {foodRestaurants.length > 0 ? (
+            foodRestaurants.map((restaurant, index) => {
+              // Get consistent image for this restaurant
+              const imageToUse = getRestaurantImage(restaurant.id, index);
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {foodRestaurants.length > 0 ? (
-              foodRestaurants.map((restaurant, index) => {
-                // Get consistent image for this restaurant
-                const imageToUse = getRestaurantImage(restaurant.id, index);
-
-                return (
-                  <Link
-                    key={restaurant.id}
-                    to={`/restaurant/${restaurant.id}`}
-                    state={{ image: imageToUse }}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-100"
-                  >
+              return (
+                <Link
+                  key={restaurant.id}
+                  to={`/restaurant/${restaurant.id}`}
+                  state={{ image: imageToUse }}
+                  className="block bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow border border-gray-100"
+                >
+                  <div className="flex">
                     <img
                       src={imageToUse}
                       alt={restaurant.name}
-                      className="w-full h-48 object-cover"
+                      className="w-24 h-24 object-cover flex-shrink-0"
                       onError={(e) => {
                         e.target.src = 'https://via.placeholder.com/300x200?text=No+Image';
                       }}
                     />
-                    <div className="p-4">
-                      <h3 className="text-xl font-semibold mb-2">
+                    <div className="p-3 flex-1">
+                      <h3 className="text-base font-semibold mb-1 line-clamp-1">
                         {restaurant.name || 'Unnamed Restaurant'}
                       </h3>
-                      <p className="text-gray-600 mb-2">
+                      <p className="text-gray-600 text-xs mb-2 line-clamp-1">
                         {restaurant.cuisine || 'Various Cuisine'}
                       </p>
                       <div className="flex justify-between items-center">
-                        <span className="text-yellow-500">
+                        <span className="text-yellow-500 text-sm flex items-center">
                           ⭐ {restaurant.rating || '4.2'}
                         </span>
-                        <span className="text-gray-600">
+                        <span className="text-gray-600 text-xs">
                           {restaurant.deliveryTime || '30 min'}
                         </span>
                       </div>
@@ -335,124 +329,118 @@ const Home = () => {
                         </div>
                       )}
                     </div>
-                  </Link>
-                );
-              })
-            ) : (
-              <div className="col-span-3 text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                <p className="text-gray-500 text-lg mb-2">
-                  {searchQuery ? 'No restaurants found' : 'No restaurants available'}
+                  </div>
+                </Link>
+              );
+            })
+          ) : (
+            <div className="text-center py-8">
+              <div className="text-gray-400 text-4xl mb-3">🔍</div>
+              <p className="text-gray-500 text-base mb-2">
+                {searchQuery ? 'No restaurants found' : 'No restaurants available'}
+              </p>
+              {searchQuery && (
+                <p className="text-gray-400 text-xs mb-4">
+                  Try adjusting your search
                 </p>
-                {searchQuery && (
-                  <p className="text-gray-400 text-sm mb-4">
-                    Try adjusting your search or browse all restaurants
-                  </p>
-                )}
-                {searchQuery && (
-                  <button
-                    onClick={handleClearSearch}
-                    className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600"
-                  >
-                    Clear Search
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600"
+                >
+                  Clear Search
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
 
       {/* ✅ GROCERY SECTION */}
       {activeTab === 'grocery' && (
-        <div>
-          <p className="text-gray-600 mb-4">
-            Showing {filteredGroceryItems.length} {filteredGroceryItems.length === 1 ? 'item' : 'items'}
-          </p>
+        <div className="grid grid-cols-2 gap-3">
+          {filteredGroceryItems.length > 0 ? (
+            filteredGroceryItems.map((item) => {
+              const quantity = getGroceryItemQuantity(item.id);
+              const hasImage = item.imageUrl && item.imageUrl.trim() !== '';
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGroceryItems.length > 0 ? (
-              filteredGroceryItems.map((item) => {
-                const quantity = getGroceryItemQuantity(item.id);
-                const hasImage = item.imageUrl && item.imageUrl.trim() !== '';
+              return (
+                <div
+                  key={item.id}
+                  className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-100 p-3 flex flex-col"
+                >
+                  {hasImage ? (
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-32 object-cover mb-2 rounded-lg"
+                      onError={(e) => (e.target.style.display = 'none')}
+                    />
+                  ) : (
+                    <div className="flex items-center justify-center w-full h-32 mb-2 bg-gradient-to-br from-green-50 to-green-100 text-4xl rounded-lg">
+                      {item.unicode || '🛒'}
+                    </div>
+                  )}
 
-                return (
-                  <div
-                    key={item.id}
-                    className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow border border-gray-100 p-4 flex flex-col items-center"
-                  >
-                    {hasImage ? (
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-40 object-cover mb-4 rounded"
-                        onError={(e) => (e.target.style.display = 'none')}
-                      />
-                    ) : (
-                      <div className="flex items-center justify-center w-full h-40 mb-4 bg-gradient-to-br from-green-50 to-green-100 text-6xl rounded">
-                        {item.unicode || '🛒'}
-                      </div>
-                    )}
+                  <h3 className="text-sm font-semibold mb-1 line-clamp-2 flex-1">{item.name}</h3>
+                  
+                  {item.category && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full mb-2 self-start">
+                      {item.category}
+                    </span>
+                  )}
+                  
+                  <p className="text-gray-600 mb-2 font-medium text-sm">₹{item.price}</p>
 
-                    <h3 className="text-lg font-semibold mb-2 text-center">{item.name}</h3>
-                    
-                    {item.category && (
-                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full mb-2">
-                        {item.category}
-                      </span>
-                    )}
-                    
-                    <p className="text-gray-600 mb-3 font-medium">₹{item.price}</p>
-
-                    {quantity === 0 ? (
+                  {quantity === 0 ? (
+                    <button
+                      onClick={() => handleGroceryAddToCart(item)}
+                      className="bg-orange-500 text-white px-3 py-2 rounded-lg text-sm hover:bg-orange-600 w-full transition-colors"
+                    >
+                      Add to Cart
+                    </button>
+                  ) : (
+                    <div className="flex justify-between items-center w-full bg-orange-50 rounded-lg p-1">
                       <button
-                        onClick={() => handleGroceryAddToCart(item)}
-                        className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600 w-full transition-colors"
+                        onClick={() => handleGroceryUpdateQuantity(item.id, quantity - 1)}
+                        className="bg-white px-2 py-1 rounded text-xs hover:bg-gray-50 transition-colors min-w-[30px]"
                       >
-                        Add to Cart
+                        −
                       </button>
-                    ) : (
-                      <div className="flex justify-between items-center w-full bg-orange-50 rounded-lg p-2">
-                        <button
-                          onClick={() => handleGroceryUpdateQuantity(item.id, quantity - 1)}
-                          className="bg-white px-3 py-1 rounded shadow hover:bg-gray-50 transition-colors"
-                        >
-                          −
-                        </button>
-                        <span className="font-bold text-gray-800">{quantity}</span>
-                        <button
-                          onClick={() => handleGroceryUpdateQuantity(item.id, quantity + 1)}
-                          className="bg-white px-3 py-1 rounded shadow hover:bg-gray-50 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <div className="col-span-3 text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                <p className="text-gray-500 text-lg mb-2">
-                  {searchQuery ? 'No items found' : 'No grocery items available'}
+                      <span className="font-bold text-gray-800 text-sm mx-1">{quantity}</span>
+                      <button
+                        onClick={() => handleGroceryUpdateQuantity(item.id, quantity + 1)}
+                        className="bg-white px-2 py-1 rounded text-xs hover:bg-gray-50 transition-colors min-w-[30px]"
+                      >
+                        +
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })
+          ) : (
+            <div className="col-span-2 text-center py-8">
+              <div className="text-gray-400 text-4xl mb-3">🔍</div>
+              <p className="text-gray-500 text-base mb-2">
+                {searchQuery ? 'No items found' : 'No grocery items available'}
+              </p>
+              {searchQuery && (
+                <p className="text-gray-400 text-xs mb-4">
+                  Try adjusting your search
                 </p>
-                {searchQuery && (
-                  <p className="text-gray-400 text-sm mb-4">
-                    Try adjusting your search or browse all items
-                  </p>
-                )}
-                {searchQuery && (
-                  <button
-                    onClick={handleClearSearch}
-                    className="bg-orange-500 text-white px-6 py-2 rounded hover:bg-orange-600"
-                  >
-                    Clear Search
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+              )}
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600"
+                >
+                  Clear Search
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
