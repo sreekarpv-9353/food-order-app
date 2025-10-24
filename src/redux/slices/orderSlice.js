@@ -10,7 +10,7 @@ export const placeOrder = createAsyncThunk(
       console.log('🛒 [placeOrder] Placing order with data:', {
         userId: orderData.userId,
         restaurantId: orderData.restaurantId,
-        type: orderData.type,
+        orderType: orderData.type,
         itemCount: orderData.items?.length
       });
 
@@ -27,7 +27,7 @@ export const placeOrder = createAsyncThunk(
       const orderDoc = {
         // User & Order Info
         userId: orderData.userId,
-        type: orderData.type || 'food',
+        orderType: orderData.type || 'food',
         restaurantId: orderData.restaurantId || null,
         
         // Items
