@@ -1,7 +1,7 @@
 // src/App.js
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './firebase/config';
@@ -42,17 +42,13 @@ function App() {
 
           dispatch(fetchRestaurants());
           dispatch(fetchUserAddresses(user.uid));
-           setAuthChecked(true);
         } catch (error) {
-                   setAuthChecked(false);
-
           console.error('Error fetching user data:', error);
         }
       } else {
-         setAuthChecked(false);
         dispatch(setUser(null));
       }
-     
+      setAuthChecked(true);
     });
 
     return () => unsubscribe();
@@ -73,17 +69,25 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        {/* Conditionally render BottomBar only when user is logged in */}
+        {/* Conditionally render BottomBar only when user is logged in AND on protected routes */}
         {user && <BottomBar />}
         
-        <main className={user ? "pb-16" : ""}> {/* Only add padding if user is logged in */}
+        <main className={user ? "pb-16" : ""}>
           <Routes>
+            {/* If user is authenticated, redirect from login/signup to home */}
+            <Route 
+              path="/login" 
+              element={user ? <Navigate to="/" replace /> : <Login />} 
+            />
+            <Route 
+              path="/signup" 
+              element={user ? <Navigate to="/" replace /> : <Signup />} 
+            />
+            
             {/* Public routes - no bottom bar */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
             <Route path="/faq" element={<FAQ />} />
             
-            {/* Protected routes - with bottom bar (handled by condition above) */}
+            {/* Protected routes - with bottom bar */}
             <Route
               path="/"
               element={
@@ -123,6 +127,12 @@ function App() {
                   <Addresses />
                 </ProtectedRoute>
               }
+            />
+            
+            {/* Catch all route - redirect to home if logged in, else to login */}
+            <Route 
+              path="*" 
+              element={user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />} 
             />
           </Routes>
         </main>
