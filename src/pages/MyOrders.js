@@ -348,7 +348,7 @@ const MyOrders = () => {
                   </div>
                   <div className="text-right">
                     <p className="font-bold text-gray-900 text-sm">
-                      ₹{order.totalAmount?.toFixed(2) || '0.00'}
+                      ₹{order.pricing?.grandTotal?.toFixed(2) || '0.00'}
                     </p>
                   </div>
                 </div>
@@ -400,7 +400,7 @@ const MyOrders = () => {
                     </div>
                     <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-1 mt-1">
                       <span>Total Amount</span>
-                      <span>₹{order.pricing?.totalAmount?.toFixed(2) || '0.00'}</span>
+                      <span>₹{order.pricing?.grandTotal.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
                 </div>
