@@ -392,15 +392,15 @@ const MyOrders = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Delivery Fee</span>
-                      <span className="font-medium">₹{order.deliveryFee?.toFixed(2) || '0.00'}</span>
+                      <span className="font-medium">₹{order.pricing?.deliveryFee.toFixed(2) || '0.00'}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Tax ({order.taxPercentage || 5}%)</span>
-                      <span className="font-medium">₹{order.taxAmount?.toFixed(2) || '0.00'}</span>
+                      <span className="text-gray-600">Tax ({order.pricing?.taxPercentage || 5}%)</span>
+                      <span className="font-medium">₹{order.pricing?.taxAmount?.toFixed(2) || '0.00'}</span>
                     </div>
                     <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-1 mt-1">
                       <span>Total Amount</span>
-                      <span>₹{order.totalAmount?.toFixed(2) || '0.00'}</span>
+                      <span>₹{order.pricing?.totalAmount?.toFixed(2) || '0.00'}</span>
                     </div>
                   </div>
                 </div>
