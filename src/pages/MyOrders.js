@@ -370,7 +370,7 @@ const MyOrders = () => {
                 ))}
               </div>
             </div>
-            // In the order summary section, add this after the items list:
+            {/* // In the order summary section, add this after the items list: */}
 
 {/* Order Charges Breakdown */}
 <div className="border-t pt-3 mt-3">
