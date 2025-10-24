@@ -118,7 +118,7 @@ const RestaurantDetail = () => {
                   )}
                   {quantity > 0 && (
                     <p className="text-sm text-green-600 font-medium mt-1">
-                      Total: ${totalPrice}
+                      Total: ₹{totalPrice}
                     </p>
                   )}
                 </div>

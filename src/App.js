@@ -10,7 +10,7 @@ import { fetchRestaurants } from './redux/slices/restaurantSlice';
 import { fetchUserAddresses } from './redux/slices/addressSlice';
 import Addresses from './pages/Addresses';
 
-import Header from './components/Header';
+import BottomBar from './components/BottomBar'; // Updated import
 import ProtectedRoute from './components/ProtectedRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
@@ -24,7 +24,6 @@ import './App.css';
 
 function App() {
   const dispatch = useDispatch();
-  // const { user } = useSelector((state) => state.auth);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -55,8 +54,8 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main>
+        <BottomBar /> {/* Replaced Header with BottomBar */}
+        <main className="pb-16"> {/* Added padding for bottom bar */}
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
@@ -94,13 +93,13 @@ function App() {
               }
             />
             <Route
-            path="/addresses"
-            element={
-              <ProtectedRoute>
-                <Addresses />
-              </ProtectedRoute>
-            }
-          />
+              path="/addresses"
+              element={
+                <ProtectedRoute>
+                  <Addresses />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
       </div>

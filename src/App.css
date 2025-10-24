@@ -1,3 +1,4 @@
+/* App.css */
 .App {
   text-align: center;
 }
@@ -34,5 +35,161 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* Mobile-optimized styles for bottom navigation */
+/* Ensure safe area support for mobile devices with notches */
+@supports(padding: max(0px)) {
+  .pb-16 {
+    padding-bottom: max(4rem, env(safe-area-inset-bottom));
+  }
+  
+  /* Safe area for bottom navigation */
+  .bottom-nav-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Main content area spacing */
+main {
+  min-height: calc(100vh - 4rem);
+  padding-bottom: 4rem; /* Default padding for bottom bar */
+}
+
+/* Improve touch targets for mobile */
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  /* Better scrolling experience */
+  html {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Bottom navigation specific styles */
+.bottom-nav {
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+/* Active state animations */
+.nav-item {
+  transition: all 0.2s ease-in-out;
+}
+
+.nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Cart badge animation */
+.cart-badge {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Loading states */
+.skeleton-loading {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Mobile-optimized scrollbar */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
+}
+
+/* Prevent zoom on input focus for mobile */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Swipe gestures support */
+.swipe-area {
+  touch-action: pan-y;
+}
+
+/* Optimize images for mobile */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Button and link optimizations */
+button, a {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Focus states for accessibility */
+@media (max-width: 768px) {
+  button:focus, a:focus {
+    outline: 2px solid #f97316; /* Orange focus ring */
+    outline-offset: 2px;
+  }
+}
+
+/* Performance optimizations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .cart-badge {
+    animation: none;
   }
 }

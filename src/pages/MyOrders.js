@@ -370,6 +370,27 @@ const MyOrders = () => {
                 ))}
               </div>
             </div>
+            // In the order summary section, add this after the items list:
+
+{/* Order Charges Breakdown */}
+<div className="border-t pt-3 mt-3">
+  <div className="flex justify-between text-sm text-gray-600 mb-1">
+    <span>Subtotal:</span>
+    <span>₹{order.subtotal?.toFixed(2) || order.totalAmount?.toFixed(2)}</span>
+  </div>
+  {order.deliveryFee > 0 && (
+    <div className="flex justify-between text-sm text-gray-600 mb-1">
+      <span>Delivery Fee:</span>
+      <span>₹{order.deliveryFee?.toFixed(2)}</span>
+    </div>
+  )}
+  {order.taxAmount > 0 && (
+    <div className="flex justify-between text-sm text-gray-600 mb-1">
+      <span>Tax ({order.taxPercentage || 5}%):</span>
+      <span>₹{order.taxAmount?.toFixed(2)}</span>
+    </div>
+  )}
+</div>
 
             {/* Order Summary */}
             <div className="flex justify-between border-t pt-4">

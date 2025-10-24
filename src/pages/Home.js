@@ -1,10 +1,10 @@
-// src/pages/Home.js
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { fetchRestaurants } from '../redux/slices/restaurantSlice';
 import { fetchGroceryItems } from '../redux/slices/grocerySlice';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/slices/cartSlice';
+import { settingsService } from '../services/settingsService';
 import Loader from '../components/Loader';
 
 // ✅ Import restaurant images
@@ -15,6 +15,12 @@ import rest3 from '../assets/rest3.png';
 const Home = () => {
   const [activeTab, setActiveTab] = useState('food');
   const [searchQuery, setSearchQuery] = useState('');
+  const [minOrderInfo, setMinOrderInfo] = useState({
+    food: 0,
+    grocery: 0,
+    foodEnabled: false,
+    groceryEnabled: false
+  });
   
   const { restaurants, loading: restaurantLoading, error: restaurantError } = useSelector((state) => state.restaurant);
   const { items: groceryItems, loading: groceryLoading, error: groceryError } = useSelector((state) => state.grocery);
@@ -45,10 +51,28 @@ const Home = () => {
     }
   }, [user, dispatch, activeTab]);
 
+  // useEffect(() => {
+  //   loadMinOrderInfo();
+  // }, [activeTab]);
+
   // Clear search when switching tabs
   useEffect(() => {
     setSearchQuery('');
   }, [activeTab]);
+
+  const loadMinOrderInfo = async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      setMinOrderInfo({
+        food: settings.foodMinOrderValue,
+        grocery: settings.groceryMinOrderValue,
+        foodEnabled: settings.isFoodMinOrderEnabled,
+        groceryEnabled: settings.isGroceryMinOrderEnabled
+      });
+    } catch (error) {
+      console.error('Error loading minimum order info:', error);
+    }
+  };
 
   // Filter restaurants based on search query
   const foodRestaurants = restaurants
@@ -119,6 +143,10 @@ const Home = () => {
     setSearchQuery('');
   };
 
+  // Get current minimum order info
+  const currentMinOrder = activeTab === 'food' ? minOrderInfo.food : minOrderInfo.grocery;
+  const isMinOrderEnabled = activeTab === 'food' ? minOrderInfo.foodEnabled : minOrderInfo.groceryEnabled;
+
   if (loading && restaurants.length === 0 && groceryItems.length === 0) {
     return <Loader />;
   }
@@ -177,6 +205,18 @@ const Home = () => {
           🛒 Grocery
         </button>
       </div>
+
+      {/* Minimum Order Info Banner */}
+      {/* {isMinOrderEnabled && currentMinOrder > 0 && (
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-center">
+            <span className="text-blue-500 mr-2">ℹ️</span>
+            <p className="text-blue-800 text-sm">
+              Minimum order value for {activeTab} is <strong>₹{currentMinOrder}</strong>
+            </p>
+          </div>
+        </div>
+      )} */}
 
       {/* Search Bar */}
       <div className="mb-6 mx-8">
@@ -287,6 +327,13 @@ const Home = () => {
                           {restaurant.deliveryTime || '30 min'}
                         </span>
                       </div>
+                      {isMinOrderEnabled && currentMinOrder > 0 && (
+                        <div className="mt-2 pt-2 border-t border-gray-100">
+                          <p className="text-xs text-gray-500">
+                            Min. order: <strong>₹{currentMinOrder}</strong>
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </Link>
                 );
