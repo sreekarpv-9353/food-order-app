@@ -11,6 +11,7 @@ const Cart = () => {
   const { addresses, selectedAddress } = useSelector((state) => state.address);
   const { user } = useSelector((state) => state.auth);
   const { loading } = useSelector((state) => state.order);
+  const { restaurants } = useSelector((state) => state.restaurant);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
@@ -24,6 +25,21 @@ const Cart = () => {
   const [isDeliveryAvailable, setIsDeliveryAvailable] = useState(true);
   const [matchedZoneDetails, setMatchedZoneDetails] = useState(null);
   const [deliveryFeeDetails, setDeliveryFeeDetails] = useState({ fee: 0, matchType: 'default' });
+
+  // Get restaurant data for food orders
+  const getRestaurantData = () => {
+    if (type === 'food' && restaurantId) {
+      const restaurant = restaurants.find(r => r.id === restaurantId || r.restaurantid === restaurantId);
+      return restaurant ? {
+        name: restaurant.name,
+        cuisine: restaurant.cuisine,
+        rating: restaurant.rating || '4.2',
+        deliveryTime: restaurant.deliveryTime || '30 min',
+        costForTwo: restaurant.costForTwo || '250'
+      } : null;
+    }
+    return null;
+  };
 
   // Memoized settings loading function
   const loadSettings = useCallback(async () => {
@@ -134,6 +150,11 @@ const Cart = () => {
 
     try {
       const grandTotal = totalAmount + deliveryFee + taxAmount;
+      const restaurantData = getRestaurantData();
+      const now = new Date().toISOString();
+      
+      // Calculate items total for verification
+      const itemsTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
       
       await dispatch(placeOrder({
         userId: user.uid,
@@ -141,18 +162,45 @@ const Cart = () => {
         restaurantId,
         type,
         orderType: type,
+        
+        // Restaurant Data
+        restaurant: restaurantData,
+        
+        // Pricing Details
+        pricing: {
+          itemsTotal: itemsTotal,
+          subtotal: totalAmount,
+          deliveryFee: deliveryFee,
+          taxAmount: taxAmount,
+          taxPercentage: settings?.taxPercentage || 5,
+          grandTotal: grandTotal,
+          currency: 'INR'
+        },
+        
+        // Order Summary
         totalAmount: grandTotal,
         subtotal: totalAmount,
         deliveryFee,
         taxAmount,
         taxPercentage: settings?.taxPercentage || 5,
+        
+        // Delivery Information
         deliveryAddress: selectedAddress,
         deliveryZone: zoneName,
         deliveryTime: deliveryTime,
         matchedZoneType: deliveryFeeDetails.matchType,
+        
+        // Order Status & Timestamps
         status: 'pending',
         paymentMethod: 'COD',
-        createdAt: new Date().toISOString()
+        createdAt: now,
+        updatedAt: now,
+        
+        // Additional Metadata
+        itemCount: items.length,
+        deliveryInstructions: '',
+        customerPhone: selectedAddress.phone,
+        customerName: selectedAddress.name
       })).unwrap();
       
       dispatch(clearCart());
@@ -204,9 +252,17 @@ const Cart = () => {
     return descriptions[deliveryFeeDetails.matchType] || descriptions.default;
   };
 
+  // Calculate items breakdown
+  const itemsBreakdown = items.map(item => ({
+    name: item.name,
+    quantity: item.quantity,
+    price: item.price,
+    total: item.price * item.quantity
+  }));
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-4 pb-24"> {/* Added pb-24 for bottom bar spacing */}
+      <div className="container mx-auto px-4 py-4 pb-24">
         {/* Header */}
         <div className="flex items-center mb-4">
           <span className="text-2xl mr-2">{cartIcon}</span>
@@ -228,6 +284,31 @@ const Cart = () => {
             {type === 'grocery' ? '🛒 Grocery Order' : '🍽️ Food Order'}
           </span>
         </div>
+
+        {/* Restaurant Info for Food Orders */}
+        {type === 'food' && getRestaurantData() && (
+          <div className="mb-3 p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                <span className="text-lg">🍽️</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="font-semibold text-gray-900 text-sm">{getRestaurantData().name}</h3>
+                <div className="flex items-center space-x-3 mt-1">
+                  <span className="text-yellow-500 text-xs flex items-center">
+                    ⭐ {getRestaurantData().rating}
+                  </span>
+                  <span className="text-gray-500 text-xs">
+                    {getRestaurantData().deliveryTime}
+                  </span>
+                  <span className="text-gray-500 text-xs">
+                    ₹{getRestaurantData().costForTwo} for two
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Delivery Availability Warning */}
         {selectedAddress && !isDeliveryAvailable && (
@@ -364,10 +445,21 @@ const Cart = () => {
             )}
           </div>
 
-          {/* Price Breakdown */}
+          {/* Detailed Price Breakdown */}
           <div className="border-t pt-4 space-y-2">
+            {/* Items Breakdown */}
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-gray-700 mb-1">Items:</p>
+              {itemsBreakdown.map((item, index) => (
+                <div key={index} className="flex justify-between text-xs text-gray-600">
+                  <span>{item.name} × {item.quantity}</span>
+                  <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                </div>
+              ))}
+            </div>
+            
             <div className="flex justify-between text-sm">
-              <span>Subtotal</span>
+              <span>Items Total</span>
               <span>₹{totalAmount.toFixed(2)}</span>
             </div>
             

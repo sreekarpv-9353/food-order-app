@@ -11,6 +11,7 @@ const MyOrders = () => {
   const [orderTypeFilter, setOrderTypeFilter] = useState('all');
   const [refreshing, setRefreshing] = useState(false);
   const [showStatusFilters, setShowStatusFilters] = useState(false);
+  const [expandedOrder, setExpandedOrder] = useState(null);
 
   const loadOrders = useCallback(async () => {
     if (!user) return;
@@ -39,6 +40,10 @@ const MyOrders = () => {
     } finally {
       setRefreshing(false);
     }
+  };
+
+  const toggleOrderExpand = (orderId) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
   // Filter orders
@@ -298,7 +303,7 @@ const MyOrders = () => {
               key={order.id}
               className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden"
             >
-              {/* Order Header */}
+              {/* Order Header - Always Visible */}
               <div className="p-3 border-b border-gray-100">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-start space-x-2 flex-1">
@@ -310,6 +315,18 @@ const MyOrders = () => {
                       <p className="text-gray-500 text-xs mt-0.5">
                         {formatDate(order.createdAt)}
                       </p>
+                      
+                      {/* Restaurant Info for Food Orders */}
+                      {order.restaurant && (
+                        <div className="flex items-center space-x-2 mt-1">
+                          <span className="text-xs font-medium text-gray-700">
+                            {order.restaurant.name}
+                          </span>
+                          <span className="text-yellow-500 text-xs flex items-center">
+                            ⭐ {order.restaurant.rating || '4.2'}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="flex flex-col items-end space-y-1 flex-shrink-0 ml-2">
@@ -321,62 +338,141 @@ const MyOrders = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Quick Summary - Always Visible */}
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-gray-100">
+                  <div className="text-xs text-gray-600">
+                    <span className="font-medium">
+                      {order.items?.length || 0} {order.items?.length === 1 ? 'item' : 'items'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-gray-900 text-sm">
+                      ₹{order.totalAmount?.toFixed(2) || '0.00'}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              {/* Order Items */}
-              <div className="p-3 border-b border-gray-100">
-                <div className="space-y-1.5">
-                  {order.items?.slice(0, 2).map((item, index) => (
-                    <div key={item.id || index} className="flex justify-between items-center text-xs">
-                      <div className="flex items-center space-x-2 flex-1 min-w-0">
-                        <span className="text-gray-400 flex-shrink-0">•</span>
-                        <span className="font-medium text-gray-800 truncate">{item.name}</span>
-                        <span className="text-gray-500 flex-shrink-0">×{item.quantity}</span>
+              {/* Expandable Section */}
+              <div className={`transition-all duration-300 overflow-hidden ${
+                expandedOrder === order.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                {/* Order Items */}
+                <div className="p-3 border-b border-gray-100">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Order Items</h4>
+                  <div className="space-y-2">
+                    {order.items?.map((item, index) => (
+                      <div key={item.id || index} className="flex justify-between items-center text-xs">
+                        <div className="flex items-center space-x-2 flex-1 min-w-0">
+                          <span className="text-gray-400 flex-shrink-0">•</span>
+                          <span className="font-medium text-gray-800 truncate">{item.name}</span>
+                          <span className="text-gray-500 flex-shrink-0">×{item.quantity}</span>
+                        </div>
+                        <div className="flex flex-col items-end text-right">
+                          <span className="font-semibold text-gray-900 text-xs">
+                            ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
+                          </span>
+                          <span className="text-gray-500 text-xs">
+                            ₹{item.price} each
+                          </span>
+                        </div>
                       </div>
-                      <span className="font-semibold text-gray-900 text-xs flex-shrink-0 ml-2">
-                        ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
-                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Detailed Pricing Breakdown */}
+                <div className="p-3 border-b border-gray-100">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Price Breakdown</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Items Total</span>
+                      <span className="font-medium">₹{order.pricing?.itemsTotal?.toFixed(2) || order.subtotal?.toFixed(2) || '0.00'}</span>
                     </div>
-                  ))}
-                  {order.items?.length > 2 && (
-                    <div className="text-center pt-1">
-                      <span className="text-xs text-gray-500 bg-gray-50 px-2 py-1 rounded-full">
-                        +{order.items.length - 2} more items
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Delivery Fee</span>
+                      <span className="font-medium">₹{order.deliveryFee?.toFixed(2) || '0.00'}</span>
                     </div>
-                  )}
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Tax ({order.taxPercentage || 5}%)</span>
+                      <span className="font-medium">₹{order.taxAmount?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-gray-900 border-t border-gray-200 pt-1 mt-1">
+                      <span>Total Amount</span>
+                      <span>₹{order.totalAmount?.toFixed(2) || '0.00'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Delivery Information */}
+                <div className="p-3 border-b border-gray-100">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Delivery Info</h4>
+                  <div className="space-y-1 text-xs">
+                    <div className="flex items-start space-x-2">
+                      <svg className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-gray-600">
+                          {formatAddress(order.deliveryAddress)}
+                        </p>
+                        {order.deliveryAddress?.phone && (
+                          <p className="text-gray-500 mt-0.5">
+                            📞 {order.deliveryAddress.phone}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    {order.deliveryZone && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Delivery Zone</span>
+                        <span className="font-medium">{order.deliveryZone}</span>
+                      </div>
+                    )}
+                    {order.deliveryTime && (
+                      <div className="flex justify-between">
+                        <span className="text-gray-600">Estimated Delivery</span>
+                        <span className="font-medium">{order.deliveryTime}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Payment Information */}
+                <div className="p-3">
+                  <h4 className="font-semibold text-gray-900 text-sm mb-2">Payment</h4>
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="text-gray-600">Payment Method</span>
+                    <span className="font-medium bg-gray-100 px-2 py-1 rounded">
+                      {order.paymentMethod || 'COD'}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Order Summary */}
-              <div className="p-3">
-                <div className="flex flex-col space-y-2">
-                  {/* Delivery Info */}
-                  <div className="flex items-start space-x-2">
-                    <svg className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              {/* Expand/Collapse Button */}
+              <button
+                onClick={() => toggleOrderExpand(order.id)}
+                className="w-full p-3 border-t border-gray-100 flex items-center justify-center text-xs text-orange-500 font-medium hover:bg-gray-50 transition-colors"
+              >
+                {expandedOrder === order.id ? (
+                  <>
+                    <span>Show Less</span>
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
                     </svg>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-gray-600 truncate">
-                        {formatAddress(order.deliveryAddress)}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Payment & Total */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                    <div className="text-xs text-gray-600">
-                      <span className="font-medium">{order.paymentMethod || 'COD'}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-gray-900 text-sm">
-                        ₹{order.totalAmount?.toFixed(2) || '0.00'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+                  </>
+                ) : (
+                  <>
+                    <span>View Details</span>
+                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </>
+                )}
+              </button>
             </div>
           ))}
         </div>
