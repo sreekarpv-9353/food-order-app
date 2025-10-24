@@ -42,13 +42,14 @@ function App() {
 
           dispatch(fetchRestaurants());
           dispatch(fetchUserAddresses(user.uid));
+           setAuthChecked(true);
         } catch (error) {
           console.error('Error fetching user data:', error);
         }
       } else {
         dispatch(setUser(null));
       }
-      setAuthChecked(true);
+     
     });
 
     return () => unsubscribe();
