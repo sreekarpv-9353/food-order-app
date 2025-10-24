@@ -44,9 +44,12 @@ function App() {
           dispatch(fetchUserAddresses(user.uid));
            setAuthChecked(true);
         } catch (error) {
+                   setAuthChecked(false);
+
           console.error('Error fetching user data:', error);
         }
       } else {
+         setAuthChecked(false);
         dispatch(setUser(null));
       }
      
