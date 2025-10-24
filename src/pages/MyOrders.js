@@ -237,7 +237,7 @@ const MyOrders = () => {
               whileTap={{ scale: 0.95 }}
               className={`flex-shrink-0 px-4 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 mx-1 ${
                 orderTypeFilter === tab.key
-                  ? 'bg-orange-500 text-white shadow-sm'
+                  ? 'bg-orange-500 text-white shadow-sm' // Removed border classes
                   : 'text-gray-600 hover:bg-gray-50'
               }`}
               onClick={() => setOrderTypeFilter(tab.key)}
@@ -294,10 +294,10 @@ const MyOrders = () => {
                     <motion.button
                       key={status.key}
                       whileTap={{ scale: 0.95 }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border ${
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                         filter === status.key
-                          ? 'bg-orange-500 text-white border-orange-500'
-                          : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                          ? 'bg-orange-500 text-white' // Removed border classes
+                          : 'bg-gray-50 text-gray-700 hover:bg-gray-100'
                       }`}
                       onClick={() => setFilter(status.key)}
                     >
@@ -385,7 +385,7 @@ const MyOrders = () => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-2">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(order.status)}`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(order.status)}`}>
                         {getStatusDisplayText(order.status)}
                       </span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderTypeBadge(order)}`}>
