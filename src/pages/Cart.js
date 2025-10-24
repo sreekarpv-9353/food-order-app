@@ -205,8 +205,8 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
-      <div className="container mx-auto px-4 py-4">
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-4 pb-24"> {/* Added pb-24 for bottom bar spacing */}
         {/* Header */}
         <div className="flex items-center mb-4">
           <span className="text-2xl mr-2">{cartIcon}</span>
@@ -263,55 +263,58 @@ const Cart = () => {
           </div>
         )}
 
-        {/* Cart Items */}
-        <div className="space-y-3 mb-4">
-          {items.map(item => (
-            <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-              <div className="flex justify-between items-start">
-                <div className="flex-1 mr-3">
-                  <h3 className="text-base font-semibold text-gray-900 mb-1">{item.name}</h3>
-                  <p className="text-gray-600 font-medium text-sm">₹{item.price}</p>
-                  {item.category && (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block">
-                      {item.category}
-                    </span>
-                  )}
-                </div>
-                
-                <div className="flex flex-col items-end space-y-2">
-                  <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
+        {/* Cart Items Section */}
+        <div className="mb-6">
+          <h2 className="text-lg font-bold mb-3">Cart Items</h2>
+          <div className="space-y-3">
+            {items.map(item => (
+              <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 mr-3">
+                    <h3 className="text-base font-semibold text-gray-900 mb-1">{item.name}</h3>
+                    <p className="text-gray-600 font-medium text-sm">₹{item.price}</p>
+                    {item.category && (
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block">
+                        {item.category}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex flex-col items-end space-y-2">
+                    <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
+                      <button
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <span className="text-sm font-bold text-gray-600">−</span>
+                      </button>
+                      <span className="font-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
+                      <button
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                      >
+                        <span className="text-sm font-bold text-gray-600">+</span>
+                      </button>
+                    </div>
                     <button
-                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="text-red-500 hover:text-red-700 text-xs font-medium"
                     >
-                      <span className="text-sm font-bold text-gray-600">−</span>
-                    </button>
-                    <span className="font-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
-                    <button
-                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
-                    >
-                      <span className="text-sm font-bold text-gray-600">+</span>
+                      Remove
                     </button>
                   </div>
-                  <button
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="text-red-500 hover:text-red-700 text-xs font-medium"
-                  >
-                    Remove
-                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
-        {/* Order Summary */}
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 sticky bottom-4">
+        {/* Order Summary Section */}
+        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mb-6">
           <h2 className="text-lg font-bold mb-3">Order Summary</h2>
           
           {/* Delivery Address */}
-          <div className="mb-3">
+          <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <h3 className="font-semibold text-sm">Delivery Address</h3>
               <button
@@ -362,7 +365,7 @@ const Cart = () => {
           </div>
 
           {/* Price Breakdown */}
-          <div className="border-t pt-3 space-y-2">
+          <div className="border-t pt-4 space-y-2">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
               <span>₹{totalAmount.toFixed(2)}</span>
@@ -379,15 +382,15 @@ const Cart = () => {
             </div>
             
             <div className="flex justify-between font-bold text-base border-t pt-2">
-              <span>Total</span>
+              <span>Total Amount</span>
               <span>₹{grandTotal.toFixed(2)}</span>
             </div>
 
             {/* Progress bar for minimum order */}
             {orderValidation.isEnabled && orderValidation.minValue > 0 && isDeliveryAvailable && (
-              <div className="mt-3">
+              <div className="mt-4">
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Order Progress</span>
+                  <span>Order Progress ({zoneName})</span>
                   <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-1.5">
@@ -402,7 +405,7 @@ const Cart = () => {
                 </div>
                 {!orderValidation.valid && (
                   <p className="text-yellow-600 text-xs mt-1 text-center">
-                    Add ₹{orderValidation.shortBy} more
+                    Add ₹{orderValidation.shortBy} more to place order
                   </p>
                 )}
               </div>
@@ -439,22 +442,25 @@ const Cart = () => {
           {/* Helper Messages */}
           {!selectedAddress && (
             <p className="text-red-500 text-xs mt-2 text-center">
-              Please select a delivery address
+              Please select a delivery address to continue
             </p>
           )}
 
           {selectedAddress && !isDeliveryAvailable && (
             <p className="text-red-500 text-xs mt-2 text-center">
-              Change address to continue
+              Delivery not available to this location. Please change address.
             </p>
           )}
 
           {selectedAddress && isDeliveryAvailable && !orderValidation.valid && orderValidation.isEnabled && (
             <p className="text-yellow-600 text-xs mt-2 text-center">
-              Add ₹{orderValidation.shortBy} more to order
+              Add ₹{orderValidation.shortBy} more to place order in {zoneName}
             </p>
           )}
         </div>
+
+        {/* Extra spacing at bottom for better scroll */}
+        <div className="h-4"></div>
       </div>
     </div>
   );
