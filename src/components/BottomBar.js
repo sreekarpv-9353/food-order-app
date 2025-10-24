@@ -223,29 +223,43 @@ const BottomBar = () => {
         }`}
         onClick={closeSideMenu}
       >
-        {/* Backdrop */}
-        <div className={`absolute inset-0 bg-black transition-opacity duration-300 ${
-          sideMenuOpen ? 'opacity-60' : 'opacity-0'
-        }`}></div>
-        
-        {/* Side Menu Panel */}
+        {/* Backdrop - Now clickable to close menu */}
         <div 
-          className={`absolute top-0 right-0 h-full w-80 max-w-full ${colors.menuBg} shadow-2xl transform transition-transform duration-300 ${
+          className={`absolute inset-0 bg-black transition-opacity duration-300 ${
+            sideMenuOpen ? 'opacity-60' : 'opacity-0'
+          }`}
+          onClick={closeSideMenu}
+        ></div>
+        
+        {/* Side Menu Panel - Now only 80% width on mobile */}
+        <div 
+          className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] ${colors.menuBg} shadow-2xl transform transition-transform duration-300 ${
             sideMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Close Button */}
+          <button
+            onClick={closeSideMenu}
+            className="absolute top-4 left-4 p-2 text-gray-500 hover:text-gray-700 transition-colors z-10"
+            aria-label="Close menu"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
           {/* Menu Header with Profile */}
-          <div className={`${colors.primary} text-white p-6`}>
+          <div className={`${colors.primary} text-white p-6 pt-12`}>
             <div className="flex items-center space-x-4">
-              <div className="w-14 h-14 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-xl">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 {user ? user.name?.charAt(0)?.toUpperCase() : '👤'}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-lg truncate">
+                <h2 className="font-bold text-base truncate">
                   {user ? user.name : 'Guest User'}
                 </h2>
-                <p className="text-orange-100 text-sm truncate">
+                <p className="text-orange-100 text-xs truncate">
                   {user ? user.email : 'Sign in for better experience'}
                 </p>
                 {user && (
@@ -259,32 +273,32 @@ const BottomBar = () => {
           </div>
 
           {/* Menu Items */}
-          <div className="py-4">
+          <div className="py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
             {user ? (
               <>
                 {/* Address */}
                 <Link 
                   to="/addresses" 
-                  className="flex items-center space-x-4 px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-xl text-gray-600">📍</span>
+                  <span className="text-lg text-gray-600">📍</span>
                   <div>
-                    <p className="font-medium text-gray-900">My Addresses</p>
-                    <p className="text-sm text-gray-500">Manage delivery addresses</p>
+                    <p className="font-medium text-gray-900 text-sm">My Addresses</p>
+                    <p className="text-gray-500 text-xs">Manage delivery addresses</p>
                   </div>
                 </Link>
 
                 {/* FAQ */}
                 <Link 
                   to="/faq" 
-                  className="flex items-center space-x-4 px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-xl text-gray-600">❓</span>
+                  <span className="text-lg text-gray-600">❓</span>
                   <div>
-                    <p className="font-medium text-gray-900">Help & FAQ</p>
-                    <p className="text-sm text-gray-500">Get help and support</p>
+                    <p className="font-medium text-gray-900 text-sm">Help & FAQ</p>
+                    <p className="text-gray-500 text-xs">Get help and support</p>
                   </div>
                 </Link>
 
@@ -294,12 +308,12 @@ const BottomBar = () => {
                 {/* Sign Out */}
                 <button 
                   onClick={handleSignOut}
-                  className="w-full flex items-center space-x-4 px-6 py-4 hover:bg-red-50 transition-colors border-l-4 border-transparent hover:border-red-500 text-left"
+                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors border-l-4 border-transparent hover:border-red-500 text-left"
                 >
-                  <span className="text-xl text-red-500">🚪</span>
+                  <span className="text-lg text-red-500">🚪</span>
                   <div>
-                    <p className="font-medium text-red-600">Sign Out</p>
-                    <p className="text-sm text-red-400">Logout from your account</p>
+                    <p className="font-medium text-red-600 text-sm">Sign Out</p>
+                    <p className="text-red-400 text-xs">Logout from your account</p>
                   </div>
                 </button>
               </>
@@ -308,13 +322,13 @@ const BottomBar = () => {
                 {/* FAQ for Guests */}
                 <Link 
                   to="/faq" 
-                  className="flex items-center space-x-4 px-6 py-4 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-xl text-gray-600">❓</span>
+                  <span className="text-lg text-gray-600">❓</span>
                   <div>
-                    <p className="font-medium text-gray-900">Help & FAQ</p>
-                    <p className="text-sm text-gray-500">Get help and support</p>
+                    <p className="font-medium text-gray-900 text-sm">Help & FAQ</p>
+                    <p className="text-gray-500 text-xs">Get help and support</p>
                   </div>
                 </Link>
 
@@ -322,17 +336,17 @@ const BottomBar = () => {
                 <div className="border-t border-gray-200 my-2"></div>
 
                 {/* Auth Buttons for Guests */}
-                <div className="px-6 py-4 space-y-3">
+                <div className="px-4 py-3 space-y-2">
                   <Link 
                     to="/login" 
-                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-3 rounded-xl text-sm font-medium hover:shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95"
+                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-200"
                     onClick={closeSideMenu}
                   >
                     Sign In to Account
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="block w-full text-center bg-gray-100 text-gray-700 px-4 py-3 rounded-xl text-sm font-medium hover:bg-gray-200 transition-all duration-200 transform hover:scale-105 active:scale-95"
+                    className="block w-full text-center bg-gray-100 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all duration-200"
                     onClick={closeSideMenu}
                   >
                     Create New Account
@@ -343,7 +357,7 @@ const BottomBar = () => {
           </div>
 
           {/* App Version / Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
             <p className="text-center text-xs text-gray-500">
               FlashFood v1.0 • Fresh & Fast
             </p>

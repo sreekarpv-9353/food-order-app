@@ -122,7 +122,7 @@ const Addresses = () => {
   const isLoading = loading || loadingAddresses;
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-4">
         {/* Header */}
         <div className="flex justify-between items-center mb-4">
@@ -328,7 +328,7 @@ const Addresses = () => {
         ) : (
           <>
             {/* Addresses List */}
-            <div className="space-y-3">
+            <div className="space-y-3 mb-24"> {/* Added margin bottom for selected address bar */}
               {addresses.map(address => (
                 <div
                   key={address.id}
@@ -405,31 +405,31 @@ const Addresses = () => {
             )}
           </>
         )}
+      </div>
 
-        {/* Selected Address Bottom Bar */}
-        {selectedAddress && !isLoading && (
-          <div className="fixed bottom-16 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-lg">
-            <div className="container mx-auto">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm text-gray-900 truncate">
-                    {selectedAddress.name}
-                  </p>
-                  <p className="text-xs text-gray-600 truncate">
-                    {selectedAddress.villageTown ? `${selectedAddress.villageTown}, ` : ''}{selectedAddress.street}
-                  </p>
-                </div>
-                <button
-                  onClick={handleUseInCheckout}
-                  className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium whitespace-nowrap ml-3"
-                >
-                  Use Address
-                </button>
+      {/* Selected Address Bottom Bar - Fixed with proper spacing */}
+      {selectedAddress && !isLoading && (
+        <div className="fixed bottom-20 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-2xl z-30">
+          <div className="container mx-auto">
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0 mr-3">
+                <p className="font-semibold text-sm text-gray-900 truncate">
+                  {selectedAddress.name}
+                </p>
+                <p className="text-xs text-gray-600 truncate">
+                  {selectedAddress.villageTown ? `${selectedAddress.villageTown}, ` : ''}{selectedAddress.street}
+                </p>
               </div>
+              <button
+                onClick={handleUseInCheckout}
+                className="bg-orange-500 text-white px-4 py-3 rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium whitespace-nowrap flex-shrink-0"
+              >
+                Use Address
+              </button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
