@@ -1,8 +1,9 @@
-// src/services/settingsService.js (Updated matching logic)
-import { doc, getDoc } from 'firebase/firestore';
+// src/services/settingsService.js (Updated with customer support)
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../firebase/config';
 
-const SETTINGS_DOC = 'deliverySettings';
+const DELIVERY_SETTINGS_DOC = 'deliverySettings';
+const CUSTOMER_SUPPORT_DOC = 'customerSupport';
 const COLLECTION = 'appSettings';
 
 // Default settings (fallback if Firestore is not available)
@@ -17,22 +18,83 @@ const defaultSettings = {
   deliveryZones: []
 };
 
+// Default customer support settings
+const defaultCustomerSupport = {
+  phone: '+91-9876543210',
+  email: 'support@quickbite.com',
+  hours: '9:00 AM - 9:00 PM',
+  whatsapp: '+91-9876543210',
+  isActive: true
+};
+
 export const settingsService = {
-  // Get all settings
+  // Get all delivery settings
   getSettings: async () => {
     try {
-      const docRef = doc(db, COLLECTION, SETTINGS_DOC);
+      const docRef = doc(db, COLLECTION, DELIVERY_SETTINGS_DOC);
       const docSnap = await getDoc(docRef);
       
       if (docSnap.exists()) {
         return { ...defaultSettings, ...docSnap.data() };
       } else {
-        console.log('Settings not found, using defaults');
+        console.log('Delivery settings not found, using defaults');
         return defaultSettings;
       }
     } catch (error) {
-      console.error('Error getting settings:', error);
+      console.error('Error getting delivery settings:', error);
       return defaultSettings;
+    }
+  },
+
+  // Get customer support settings
+  getCustomerSupport: async () => {
+    try {
+      const docRef = doc(db, COLLECTION, CUSTOMER_SUPPORT_DOC);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return { ...defaultCustomerSupport, ...docSnap.data() };
+      } else {
+        console.log('Customer support settings not found, using defaults');
+        return defaultCustomerSupport;
+      }
+    } catch (error) {
+      console.error('Error getting customer support settings:', error);
+      return defaultCustomerSupport;
+    }
+  },
+
+  // Save customer support settings
+  saveCustomerSupport: async (supportSettings) => {
+    try {
+      const docRef = doc(db, COLLECTION, CUSTOMER_SUPPORT_DOC);
+      await setDoc(docRef, supportSettings, { merge: true });
+      console.log('Customer support settings saved successfully');
+      return true;
+    } catch (error) {
+      console.error('Error saving customer support settings:', error);
+      throw error;
+    }
+  },
+
+  // Get minimum order settings
+  getMinimumOrderSettings: async () => {
+    try {
+      const settings = await settingsService.getSettings();
+      return {
+        enabled: true, // Always enabled for now
+        grocery: settings.groceryMinOrderValue,
+        food: settings.foodMinOrderValue,
+        default: Math.min(settings.groceryMinOrderValue, settings.foodMinOrderValue)
+      };
+    } catch (error) {
+      console.error('Error getting minimum order settings:', error);
+      return {
+        enabled: true,
+        grocery: 100,
+        food: 50,
+        default: 50
+      };
     }
   },
 
@@ -228,5 +290,48 @@ export const settingsService = {
   getActiveZones: async () => {
     const settings = await settingsService.getSettings();
     return settings.deliveryZones?.filter(zone => zone.isActive) || [];
+  },
+
+  // Get formatted customer support information
+  getFormattedCustomerSupport: async () => {
+    const support = await settingsService.getCustomerSupport();
+    
+    if (!support.isActive) {
+      return {
+        isActive: false,
+        message: 'Customer support is currently unavailable'
+      };
+    }
+
+    return {
+      isActive: true,
+      phone: support.phone,
+      email: support.email,
+      hours: support.hours,
+      whatsapp: support.whatsapp,
+      formattedPhone: support.phone.replace(/\D/g, ''), // Remove non-numeric characters for tel: links
+      formattedWhatsApp: support.whatsapp.replace(/\D/g, '') // Remove non-numeric characters for WhatsApp links
+    };
+  },
+
+  // Validate customer support settings
+  validateCustomerSupport: (supportSettings) => {
+    const errors = [];
+    
+    if (!supportSettings.phone?.trim()) {
+      errors.push('Phone number is required');
+    }
+    
+    if (!supportSettings.email?.trim()) {
+      errors.push('Email is required');
+    } else if (!/\S+@\S+\.\S+/.test(supportSettings.email)) {
+      errors.push('Valid email is required');
+    }
+    
+    if (!supportSettings.hours?.trim()) {
+      errors.push('Support hours are required');
+    }
+    
+    return errors;
   }
 };
