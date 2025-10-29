@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { updateQuantity, removeFromCart, clearCart } from '../redux/slices/cartSlice';
 import { placeOrder, clearError } from '../redux/slices/orderSlice';
 import { settingsService } from '../services/settingsService';
+import { Helmet } from 'react-helmet';
 
 const Cart = () => {
   const { items, restaurantId, type, totalAmount } = useSelector((state) => state.cart);
@@ -222,14 +223,14 @@ const Cart = () => {
   // Empty cart state
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 work-sans">
         <div className="text-center">
           <div className="text-gray-300 text-6xl mb-4">🛒</div>
-          <h2 className="text-xl font-bold text-gray-900 mb-3">Your cart is empty</h2>
-          <p className="text-gray-600 text-sm mb-6">Add some delicious items to get started!</p>
+          <h2 className="text-xl work-sans-bold text-gray-900 mb-3">Your cart is empty</h2>
+          <p className="text-gray-600 text-sm mb-6 work-sans-medium">Add some delicious items to get started!</p>
           <button
             onClick={() => navigate('/')}
-            className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors font-medium"
+            className="bg-orange-500 text-white px-6 py-3 rounded-lg hover:bg-orange-600 transition-colors work-sans-medium"
           >
             Continue Shopping
           </button>
@@ -415,7 +416,7 @@ const Cart = () => {
     const badge = badges[matchType] || badges.default;
     
     return (
-      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${badge.color}`}>
+      <span className={`inline-block px-2 py-1 rounded-full text-xs work-sans-medium ${badge.color}`}>
         {badge.text}
       </span>
     );
@@ -451,353 +452,381 @@ const Cart = () => {
     isLoadingSettings;
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-4 pb-24">
-        {/* Header */}
-        <div className="flex items-center mb-4">
-          <span className="text-2xl mr-2">{cartIcon}</span>
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{cartTitle}</h1>
-            <p className="text-sm text-gray-600">
-              {items.length} {items.length === 1 ? 'item' : 'items'} • ₹{totalAmount.toFixed(2)}
-            </p>
+    <>
+      <Helmet>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          {`
+            .work-sans {
+              font-family: 'Work Sans', sans-serif;
+            }
+            .work-sans-medium {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 500;
+            }
+            .work-sans-semibold {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 600;
+            }
+            .work-sans-bold {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 700;
+            }
+          `}
+        </style>
+      </Helmet>
+      
+      <div className="min-h-screen bg-gray-50 work-sans">
+        <div className="container mx-auto px-4 py-4 pb-24">
+          {/* Header */}
+          <div className="flex items-center mb-4">
+            <span className="text-2xl mr-2">{cartIcon}</span>
+            <div>
+              <h1 className="text-xl work-sans-bold text-gray-900">{cartTitle}</h1>
+              <p className="text-sm text-gray-600 work-sans-medium">
+                {items.length} {items.length === 1 ? 'item' : 'items'} • ₹{totalAmount.toFixed(2)}
+              </p>
+            </div>
           </div>
-        </div>
 
-        {/* Order Type Badge */}
-        <div className="mb-3">
-          <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium border ${
-            type === 'grocery' 
-              ? 'bg-green-100 text-green-800 border-green-200' 
-              : 'bg-orange-100 text-orange-800 border-orange-200'
-          }`}>
-            {type === 'grocery' ? '🛒 Grocery Order' : '🍽️ Food Order'}
-          </span>
-        </div>
+          {/* Order Type Badge */}
+          <div className="mb-3">
+            <span className={`inline-block px-3 py-1 rounded-full text-xs work-sans-medium border ${
+              type === 'grocery' 
+                ? 'bg-green-100 text-green-800 border-green-200' 
+                : 'bg-orange-100 text-orange-800 border-orange-200'
+            }`}>
+              {type === 'grocery' ? '🛒 Grocery Order' : '🍽️ Food Order'}
+            </span>
+          </div>
 
-        {/* Minimum Order Requirement Banner */}
-        {orderValidation.isEnabled && (
-          <div className={`mb-3 p-3 rounded-xl border ${
-            orderValidation.valid 
-              ? 'bg-green-50 border-green-200' 
-              : 'bg-yellow-50 border-yellow-200'
-          }`}>
-            <div className="flex items-start">
-              <span className={`text-lg mr-2 flex-shrink-0 ${
-                orderValidation.valid ? 'text-green-500' : 'text-yellow-500'
-              }`}>
-                {orderValidation.valid ? '✅' : '⚠️'}
-              </span>
-              <div className="flex-1">
-                <p className={`font-medium text-sm ${
-                  orderValidation.valid ? 'text-green-800' : 'text-yellow-800'
+          {/* Minimum Order Requirement Banner */}
+          {orderValidation.isEnabled && (
+            <div className={`mb-3 p-3 rounded-xl border ${
+              orderValidation.valid 
+                ? 'bg-green-50 border-green-200' 
+                : 'bg-yellow-50 border-yellow-200'
+            }`}>
+              <div className="flex items-start">
+                <span className={`text-lg mr-2 flex-shrink-0 ${
+                  orderValidation.valid ? 'text-green-500' : 'text-yellow-500'
                 }`}>
-                  {orderValidation.valid ? 'Minimum order met!' : 'Minimum order required'}
-                </p>
-                <p className={`text-xs mt-1 ${
-                  orderValidation.valid ? 'text-green-700' : 'text-yellow-700'
-                }`}>
-                  {orderValidation.valid 
-                    ? `You've reached the minimum order value of ₹${orderValidation.minValue}`
-                    : `Add ₹${orderValidation.shortBy} more to reach minimum order of ₹${orderValidation.minValue}`
-                  }
-                </p>
-                
-                {/* Progress Bar */}
-                {orderValidation.isEnabled && orderValidation.minValue > 0 && (
-                  <div className="mt-2">
-                    <div className="flex justify-between text-xs mb-1">
-                      <span>Order Progress</span>
-                      <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
-                        }`}
-                        style={{ 
-                          width: `${Math.min(100, (totalAmount / orderValidation.minValue) * 100)}%` 
-                        }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Restaurant Info for Food Orders */}
-        {type === 'food' && getRestaurantData() && (
-          <div className="mb-3 p-3 bg-white rounded-xl shadow-sm border border-gray-100">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
-                <span className="text-lg">🍽️</span>
-              </div>
-              <div className="flex-1">
-                <h3 className="font-semibold text-gray-900 text-sm">{getRestaurantData().name}</h3>
-                <div className="flex items-center space-x-3 mt-1">
-                  <span className="text-yellow-500 text-xs flex items-center">
-                    ⭐ {getRestaurantData().rating}
-                  </span>
-                  <span className="text-gray-500 text-xs">
-                    {getRestaurantData().deliveryTime}
-                  </span>
-                  <span className="text-gray-500 text-xs">
-                    ₹{getRestaurantData().costForTwo} for two
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Error Message */}
-        {error && (
-          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-start">
-              <span className="text-red-500 text-lg mr-2 flex-shrink-0">❌</span>
-              <div>
-                <p className="text-red-800 font-medium text-sm">
-                  Order Error
-                </p>
-                <p className="text-red-700 text-xs mt-1">
-                  {error}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delivery Availability Warning */}
-        {selectedAddress && !isDeliveryAvailable && (
-          <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
-            <div className="flex items-start">
-              <span className="text-red-500 text-lg mr-2 flex-shrink-0">🚫</span>
-              <div>
-                <p className="text-red-800 font-medium text-sm">
-                  Delivery not available
-                </p>
-                <p className="text-red-700 text-xs mt-1">
-                  We don't deliver to {selectedAddress.villageTown || selectedAddress.city} ({selectedAddress.zipCode})
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Cart Items Section */}
-        <div className="mb-6">
-          <h2 className="text-lg font-bold mb-3">Cart Items</h2>
-          <div className="space-y-3">
-            {items.map(item => (
-              <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 mr-3">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">{item.name}</h3>
-                    <p className="text-gray-600 font-medium text-sm">₹{item.price}</p>
-                    {item.category && (
-                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block">
-                        {item.category}
-                      </span>
-                    )}
-                  </div>
+                  {orderValidation.valid ? '✅' : '⚠️'}
+                </span>
+                <div className="flex-1">
+                  <p className={`work-sans-medium text-sm ${
+                    orderValidation.valid ? 'text-green-800' : 'text-yellow-800'
+                  }`}>
+                    {orderValidation.valid ? 'Minimum order met!' : 'Minimum order required'}
+                  </p>
+                  <p className={`text-xs mt-1 work-sans-medium ${
+                    orderValidation.valid ? 'text-green-700' : 'text-yellow-700'
+                  }`}>
+                    {orderValidation.valid 
+                      ? `You've reached the minimum order value of ₹${orderValidation.minValue}`
+                      : `Add ₹${orderValidation.shortBy} more to reach minimum order of ₹${orderValidation.minValue}`
+                    }
+                  </p>
                   
-                  <div className="flex flex-col items-end space-y-2">
-                    <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
-                      <button
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                        className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
-                      >
-                        <span className="text-sm font-bold text-gray-600">−</span>
-                      </button>
-                      <span className="font-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
-                      <button
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                        className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200"
-                      >
-                        <span className="text-sm font-bold text-gray-600">+</span>
-                      </button>
+                  {/* Progress Bar */}
+                  {orderValidation.isEnabled && orderValidation.minValue > 0 && (
+                    <div className="mt-2">
+                      <div className="flex justify-between text-xs mb-1 work-sans-medium">
+                        <span>Order Progress</span>
+                        <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full transition-all duration-300 ${
+                            orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
+                          }`}
+                          style={{ 
+                            width: `${Math.min(100, (totalAmount / orderValidation.minValue) * 100)}%` 
+                          }}
+                        ></div>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="text-red-500 hover:text-red-700 text-xs font-medium"
-                    >
-                      Remove
-                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Restaurant Info for Food Orders */}
+          {type === 'food' && getRestaurantData() && (
+            <div className="mb-3 p-3 bg-white rounded-xl shadow-sm border border-gray-100">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <span className="text-lg">🍽️</span>
+                </div>
+                <div className="flex-1">
+                  <h3 className="work-sans-semibold text-gray-900 text-sm">{getRestaurantData().name}</h3>
+                  <div className="flex items-center space-x-3 mt-1">
+                    <span className="text-yellow-500 text-xs flex items-center work-sans-medium">
+                      ⭐ {getRestaurantData().rating}
+                    </span>
+                    <span className="text-gray-500 text-xs work-sans-medium">
+                      {getRestaurantData().deliveryTime}
+                    </span>
+                    <span className="text-gray-500 text-xs work-sans-medium">
+                      ₹{getRestaurantData().costForTwo} for two
+                    </span>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Order Summary Section */}
-        <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mb-6">
-          <h2 className="text-lg font-bold mb-3">Order Summary</h2>
-          
-          {/* Delivery Address */}
-          <div className="mb-4">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-semibold text-sm">Delivery Address</h3>
-              <button
-                onClick={() => navigate('/addresses')}
-                className="text-orange-500 hover:text-orange-600 text-xs font-medium"
-              >
-                {selectedAddress ? 'Change' : 'Add'}
-              </button>
             </div>
-            
-            {selectedAddress ? (
-              <div className="bg-gray-50 p-3 rounded-lg">
-                <p className="font-medium text-sm">{selectedAddress.name}</p>
-                <p className="text-xs text-gray-600 mt-1">{selectedAddress.street}</p>
-                {selectedAddress.villageTown && (
-                  <p className="text-xs text-gray-600 font-medium">{selectedAddress.villageTown}</p>
-                )}
-                <p className="text-xs text-gray-600">
-                  {selectedAddress.city}, {selectedAddress.state} {selectedAddress.zipCode}
-                </p>
-                <p className="text-xs text-gray-600 mt-1">📞 {selectedAddress.phone}</p>
-                
-                {/* Zone Information */}
-                {isDeliveryAvailable && (
-                  <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
-                    <div className="flex justify-between items-center mb-1">
-                      <p className="text-green-700 text-xs font-medium">
-                        🚚 {zoneName}
-                      </p>
-                      {getMatchTypeBadge()}
-                    </div>
-                    <p className="text-green-600 text-xs">
-                      {getMatchDescription()}
-                    </p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
-                <p className="text-gray-500 text-sm">No address selected</p>
-                <button
-                  onClick={() => navigate('/addresses')}
-                  className="text-orange-500 text-xs font-medium mt-1"
-                >
-                  + Add Delivery Address
-                </button>
-              </div>
-            )}
-          </div>
+          )}
 
-          {/* Detailed Price Breakdown */}
-          <div className="border-t pt-4 space-y-2">
-            {/* Items Breakdown */}
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-gray-700 mb-1">Items:</p>
-              {itemsBreakdown.map((item, index) => (
-                <div key={index} className="flex justify-between text-xs text-gray-600">
-                  <span>{item.name} × {item.quantity}</span>
-                  <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+          {/* Error Message */}
+          {error && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start">
+                <span className="text-red-500 text-lg mr-2 flex-shrink-0">❌</span>
+                <div>
+                  <p className="text-red-800 work-sans-medium text-sm">
+                    Order Error
+                  </p>
+                  <p className="text-red-700 text-xs mt-1 work-sans-medium">
+                    {error}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Delivery Availability Warning */}
+          {selectedAddress && !isDeliveryAvailable && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <div className="flex items-start">
+                <span className="text-red-500 text-lg mr-2 flex-shrink-0">🚫</span>
+                <div>
+                  <p className="text-red-800 work-sans-medium text-sm">
+                    Delivery not available
+                  </p>
+                  <p className="text-red-700 text-xs mt-1 work-sans-medium">
+                    We don't deliver to {selectedAddress.villageTown || selectedAddress.city} ({selectedAddress.zipCode})
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Cart Items Section */}
+          <div className="mb-6">
+            <h2 className="text-lg work-sans-bold mb-3">Cart Items</h2>
+            <div className="space-y-3">
+              {items.map(item => (
+                <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 mr-3">
+                      <h3 className="text-sm work-sans-semibold text-gray-900 mb-1">{item.name}</h3>
+                      <p className="text-gray-600 work-sans-medium text-sm">₹{item.price}</p>
+                      {item.category && (
+                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block work-sans-medium">
+                          {item.category}
+                        </span>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-col items-end space-y-2">
+                      <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
+                        <button
+                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                          className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold"
+                        >
+                          <span className="text-sm text-gray-600">−</span>
+                        </button>
+                        <span className="work-sans-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
+                        <button
+                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                          className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold"
+                        >
+                          <span className="text-sm text-gray-600">+</span>
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => handleRemoveItem(item.id)}
+                        className="text-red-500 hover:text-red-700 text-xs work-sans-medium"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Order Summary Section */}
+          <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mb-6">
+            <h2 className="text-lg work-sans-bold mb-3">Order Summary</h2>
             
-            <div className="flex justify-between text-sm">
-              <span>Items Total</span>
-              <span>₹{totalAmount.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span>Delivery Fee</span>
-              <span>₹{deliveryFee.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex justify-between text-sm">
-              <span>Tax ({settings?.taxPercentage || 5}%)</span>
-              <span>₹{taxAmount.toFixed(2)}</span>
-            </div>
-            
-            <div className="flex justify-between font-bold text-base border-t pt-2">
-              <span>Total Amount</span>
-              <span>₹{grandTotal.toFixed(2)}</span>
+            {/* Delivery Address */}
+            <div className="mb-4">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="work-sans-semibold text-sm">Delivery Address</h3>
+                <button
+                  onClick={() => navigate('/addresses')}
+                  className="text-orange-500 hover:text-orange-600 text-xs work-sans-medium"
+                >
+                  {selectedAddress ? 'Change' : 'Add'}
+                </button>
+              </div>
+              
+              {selectedAddress ? (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="work-sans-medium text-sm">{selectedAddress.name}</p>
+                  <p className="text-xs text-gray-600 mt-1 work-sans-medium">{selectedAddress.street}</p>
+                  {selectedAddress.villageTown && (
+                    <p className="text-xs text-gray-600 work-sans-medium">{selectedAddress.villageTown}</p>
+                  )}
+                  <p className="text-xs text-gray-600 work-sans-medium">
+                    {selectedAddress.city}, {selectedAddress.state} {selectedAddress.zipCode}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-1 work-sans-medium">📞 {selectedAddress.phone}</p>
+                  
+                  {/* Zone Information */}
+                  {isDeliveryAvailable && (
+                    <div className="mt-2 p-2 bg-green-50 rounded border border-green-200">
+                      <div className="flex justify-between items-center mb-1">
+                        <p className="text-green-700 text-xs work-sans-medium">
+                          🚚 {zoneName}
+                        </p>
+                        {getMatchTypeBadge()}
+                      </div>
+                      <p className="text-green-600 text-xs work-sans-medium">
+                        {getMatchDescription()}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-4 border-2 border-dashed border-gray-300 rounded-lg">
+                  <p className="text-gray-500 text-sm work-sans-medium">No address selected</p>
+                  <button
+                    onClick={() => navigate('/addresses')}
+                    className="text-orange-500 text-xs work-sans-medium mt-1"
+                  >
+                    + Add Delivery Address
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Minimum Order Progress */}
-            {orderValidation.isEnabled && orderValidation.minValue > 0 && isDeliveryAvailable && (
-              <div className="mt-4">
-                <div className="flex justify-between text-xs text-gray-600 mb-1">
-                  <span>Order Progress ({zoneName})</span>
-                  <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-1.5">
-                  <div 
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
-                    }`}
-                    style={{ 
-                      width: `${progressPercentage}%` 
-                    }}
-                  ></div>
-                </div>
-                {!orderValidation.valid && (
-                  <p className="text-yellow-600 text-xs mt-1 text-center">
-                    Add ₹{orderValidation.shortBy} more to place order
-                  </p>
-                )}
+            {/* Detailed Price Breakdown */}
+            <div className="border-t pt-4 space-y-2">
+              {/* Items Breakdown */}
+              <div className="space-y-1">
+                <p className="text-sm work-sans-medium text-gray-700 mb-1">Items:</p>
+                {itemsBreakdown.map((item, index) => (
+                  <div key={index} className="flex justify-between text-xs text-gray-600 work-sans-medium">
+                    <span>{item.name} × {item.quantity}</span>
+                    <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                  </div>
+                ))}
               </div>
+              
+              <div className="flex justify-between text-sm work-sans-medium">
+                <span>Items Total</span>
+                <span>₹{totalAmount.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between text-sm work-sans-medium">
+                <span>Delivery Fee</span>
+                <span>₹{deliveryFee.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between text-sm work-sans-medium">
+                <span>Tax ({settings?.taxPercentage || 5}%)</span>
+                <span>₹{taxAmount.toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between work-sans-bold text-base border-t pt-2">
+                <span>Total Amount</span>
+                <span>₹{grandTotal.toFixed(2)}</span>
+              </div>
+
+              {/* Minimum Order Progress */}
+              {orderValidation.isEnabled && orderValidation.minValue > 0 && isDeliveryAvailable && (
+                <div className="mt-4">
+                  <div className="flex justify-between text-xs text-gray-600 mb-1 work-sans-medium">
+                    <span>Order Progress ({zoneName})</span>
+                    <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div 
+                      className={`h-1.5 rounded-full transition-all duration-300 ${
+                        orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
+                      }`}
+                      style={{ 
+                        width: `${progressPercentage}%` 
+                      }}
+                    ></div>
+                  </div>
+                  {!orderValidation.valid && (
+                    <p className="text-yellow-600 text-xs mt-1 text-center work-sans-medium">
+                      Add ₹{orderValidation.shortBy} more to place order
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Place Order Button */}
+            <button
+              onClick={handlePlaceOrder}
+              disabled={isButtonDisabled}
+              className={`w-full py-3 rounded-xl mt-4 text-sm transition-colors work-sans-semibold ${
+                isButtonDisabled
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
+              }`}
+            >
+              {isLoadingSettings ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Loading...
+                </div>
+              ) : !isDeliveryAvailable ? (
+                '🚫 Delivery Not Available'
+              ) : loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Placing Order...
+                </div>
+              ) : (
+                `Place Order • ₹${grandTotal.toFixed(2)}`
+              )}
+            </button>
+
+            {/* Helper Messages */}
+            {!selectedAddress && (
+              <p className="text-red-500 text-xs mt-2 text-center work-sans-medium">
+                Please select a delivery address to continue
+              </p>
+            )}
+
+            {selectedAddress && !isDeliveryAvailable && (
+              <p className="text-red-500 text-xs mt-2 text-center work-sans-medium">
+                Delivery not available to this location. Please change address.
+              </p>
+            )}
+
+            {selectedAddress && isDeliveryAvailable && !orderValidation.valid && orderValidation.isEnabled && (
+              <p className="text-yellow-600 text-xs mt-2 text-center work-sans-medium">
+                Add ₹{orderValidation.shortBy} more to place order in {zoneName}
+              </p>
             )}
           </div>
 
-          {/* Place Order Button */}
-          <button
-            onClick={handlePlaceOrder}
-            disabled={isButtonDisabled}
-            className={`w-full py-3 rounded-xl mt-4 font-medium text-sm transition-colors ${
-              isButtonDisabled
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
-            }`}
-          >
-            {isLoadingSettings ? (
-              <div className="flex items-center justify-center">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Loading...
-              </div>
-            ) : !isDeliveryAvailable ? (
-              '🚫 Delivery Not Available'
-            ) : loading ? (
-              <div className="flex items-center justify-center">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                Placing Order...
-              </div>
-            ) : (
-              `Place Order • ₹${grandTotal.toFixed(2)}`
-            )}
-          </button>
-
-          {/* Helper Messages */}
-          {!selectedAddress && (
-            <p className="text-red-500 text-xs mt-2 text-center">
-              Please select a delivery address to continue
-            </p>
-          )}
-
-          {selectedAddress && !isDeliveryAvailable && (
-            <p className="text-red-500 text-xs mt-2 text-center">
-              Delivery not available to this location. Please change address.
-            </p>
-          )}
-
-          {selectedAddress && isDeliveryAvailable && !orderValidation.valid && orderValidation.isEnabled && (
-            <p className="text-yellow-600 text-xs mt-2 text-center">
-              Add ₹{orderValidation.shortBy} more to place order in {zoneName}
-            </p>
-          )}
+          {/* Extra spacing at bottom for better scroll */}
+          <div className="h-4"></div>
         </div>
-
-        {/* Extra spacing at bottom for better scroll */}
-        <div className="h-4"></div>
       </div>
-    </div>
+    </>
   );
 };
 

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { signOutUser } from '../redux/slices/authSlice';
+import { Helmet } from 'react-helmet';
 
 const BottomBar = () => {
   const { user } = useSelector((state) => state.auth);
@@ -47,8 +48,34 @@ const BottomBar = () => {
 
   return (
     <>
+      <Helmet>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+        <style>
+          {`
+            .work-sans {
+              font-family: 'Work Sans', sans-serif;
+            }
+            .work-sans-medium {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 500;
+            }
+            .work-sans-semibold {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 600;
+            }
+            .work-sans-bold {
+              font-family: 'Work Sans', sans-serif;
+              font-weight: 700;
+            }
+          `}
+        </style>
+      </Helmet>
+
       {/* Top Header with Profile & Menu */}
-      <header className={`${colors.primary} text-white shadow-xl sticky top-0 z-50`}>
+      <header className={`${colors.primary} text-white shadow-xl sticky top-0 z-50 work-sans`}>
         <div className="container mx-auto px-4 py-3">
           <div className="flex justify-between items-center">
             {/* Logo */}
@@ -57,8 +84,8 @@ const BottomBar = () => {
                 <span className="text-xl">🍔</span>
               </div>
               <div>
-                <h1 className="text-lg font-bold tracking-tight">FlashFood</h1>
-                <p className="text-xs opacity-80 -mt-1">Quick & Fresh</p>
+                <h1 className="text-lg work-sans-bold tracking-tight">FlashFood</h1>
+                <p className="text-xs opacity-80 -mt-1 work-sans-medium">Quick & Fresh</p>
               </div>
             </Link>
             
@@ -67,7 +94,7 @@ const BottomBar = () => {
               {user && (
                 <div className="hidden sm:flex items-center space-x-2 bg-white bg-opacity-15 rounded-full px-3 py-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-sm font-medium">Hi, {user.name?.split(' ')[0]}</span>
+                  <span className="text-sm work-sans-medium">Hi, {user.name?.split(' ')[0]}</span>
                 </div>
               )}
               
@@ -96,7 +123,7 @@ const BottomBar = () => {
       </header>
 
       {/* Bottom Navigation Bar - Simplified */}
-      <nav className={`${colors.primary} text-white shadow-2xl fixed bottom-0 left-0 right-0 z-40 border-t border-orange-400 pb-safe`}>
+      <nav className={`${colors.primary} text-white shadow-2xl fixed bottom-0 left-0 right-0 z-40 border-t border-orange-400 pb-safe work-sans`}>
         <div className="container mx-auto">
           {user ? (
             <div className="flex justify-around items-center py-2 px-1">
@@ -112,7 +139,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
                   🏠
                 </div>
-                <span className="text-xs font-medium tracking-wide">Home</span>
+                <span className="text-xs work-sans-medium tracking-wide">Home</span>
               </Link>
               
               {/* Orders */}
@@ -127,7 +154,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/my-orders') ? 'scale-110' : ''}`}>
                   📦
                 </div>
-                <span className="text-xs font-medium tracking-wide">Orders</span>
+                <span className="text-xs work-sans-medium tracking-wide">Orders</span>
               </Link>
               
               {/* Cart with Badge */}
@@ -142,9 +169,9 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/cart') ? 'scale-110' : ''}`}>
                   🛒
                 </div>
-                <span className="text-xs font-medium tracking-wide">Cart</span>
+                <span className="text-xs work-sans-medium tracking-wide">Cart</span>
                 {cartItemCount > 0 && (
-                  <span className={`absolute -top-1 -right-1 ${colors.badge} text-white rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold shadow-lg animate-pulse`}>
+                  <span className={`absolute -top-1 -right-1 ${colors.badge} text-white rounded-full w-5 h-5 text-xs flex items-center justify-center work-sans-bold shadow-lg animate-pulse`}>
                     {cartItemCount > 9 ? '9+' : cartItemCount}
                   </span>
                 )}
@@ -162,7 +189,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${sideMenuOpen ? 'scale-110' : ''}`}>
                   ⋮
                 </div>
-                <span className="text-xs font-medium tracking-wide">Menu</span>
+                <span className="text-xs work-sans-medium tracking-wide">Menu</span>
               </button>
             </div>
           ) : (
@@ -179,7 +206,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
                   🏠
                 </div>
-                <span className="text-xs font-medium tracking-wide">Home</span>
+                <span className="text-xs work-sans-medium tracking-wide">Home</span>
               </Link>
               
               {/* Login */}
@@ -194,7 +221,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/login') ? 'scale-110' : ''}`}>
                   🔑
                 </div>
-                <span className="text-xs font-medium tracking-wide">Login</span>
+                <span className="text-xs work-sans-medium tracking-wide">Login</span>
               </Link>
               
               {/* Sign Up */}
@@ -209,7 +236,7 @@ const BottomBar = () => {
                 <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/signup') ? 'scale-110' : ''}`}>
                   ✨
                 </div>
-                <span className="text-xs font-medium tracking-wide">Sign Up</span>
+                <span className="text-xs work-sans-medium tracking-wide">Sign Up</span>
               </Link>
             </div>
           )}
@@ -218,7 +245,7 @@ const BottomBar = () => {
 
       {/* Side Menu Overlay */}
       <div
-        className={`fixed inset-0 z-50 transition-all duration-300 ${
+        className={`fixed inset-0 z-50 transition-all duration-300 work-sans ${
           sideMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeSideMenu}
@@ -252,20 +279,20 @@ const BottomBar = () => {
           {/* Menu Header with Profile */}
           <div className={`${colors.primary} text-white p-6 pt-12`}>
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white work-sans-bold text-lg">
                 {user ? user.name?.charAt(0)?.toUpperCase() : '👤'}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-bold text-base truncate">
+                <h2 className="work-sans-bold text-base truncate">
                   {user ? user.name : 'Guest User'}
                 </h2>
-                <p className="text-orange-100 text-xs truncate">
+                <p className="text-orange-100 text-xs truncate work-sans-medium">
                   {user ? user.email : 'Sign in for better experience'}
                 </p>
                 {user && (
                   <div className="flex items-center space-x-1 mt-1">
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                    <span className="text-xs text-orange-100">Online</span>
+                    <span className="text-xs text-orange-100 work-sans-medium">Online</span>
                   </div>
                 )}
               </div>
@@ -284,8 +311,8 @@ const BottomBar = () => {
                 >
                   <span className="text-lg text-gray-600">📍</span>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">My Addresses</p>
-                    <p className="text-gray-500 text-xs">Manage delivery addresses</p>
+                    <p className="work-sans-medium text-gray-900 text-sm">My Addresses</p>
+                    <p className="text-gray-500 text-xs work-sans-medium">Manage delivery addresses</p>
                   </div>
                 </Link>
 
@@ -297,8 +324,8 @@ const BottomBar = () => {
                 >
                   <span className="text-lg text-gray-600">❓</span>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Help & FAQ</p>
-                    <p className="text-gray-500 text-xs">Get help and support</p>
+                    <p className="work-sans-medium text-gray-900 text-sm">Help & FAQ</p>
+                    <p className="text-gray-500 text-xs work-sans-medium">Get help and support</p>
                   </div>
                 </Link>
 
@@ -312,8 +339,8 @@ const BottomBar = () => {
                 >
                   <span className="text-lg text-red-500">🚪</span>
                   <div>
-                    <p className="font-medium text-red-600 text-sm">Sign Out</p>
-                    <p className="text-red-400 text-xs">Logout from your account</p>
+                    <p className="work-sans-medium text-red-600 text-sm">Sign Out</p>
+                    <p className="text-red-400 text-xs work-sans-medium">Logout from your account</p>
                   </div>
                 </button>
               </>
@@ -327,8 +354,8 @@ const BottomBar = () => {
                 >
                   <span className="text-lg text-gray-600">❓</span>
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">Help & FAQ</p>
-                    <p className="text-gray-500 text-xs">Get help and support</p>
+                    <p className="work-sans-medium text-gray-900 text-sm">Help & FAQ</p>
+                    <p className="text-gray-500 text-xs work-sans-medium">Get help and support</p>
                   </div>
                 </Link>
 
@@ -339,14 +366,14 @@ const BottomBar = () => {
                 <div className="px-4 py-3 space-y-2">
                   <Link 
                     to="/login" 
-                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2.5 rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-200"
+                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2.5 rounded-lg text-sm work-sans-semibold hover:shadow-lg transition-all duration-200"
                     onClick={closeSideMenu}
                   >
                     Sign In to Account
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="block w-full text-center bg-gray-100 text-gray-700 px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-gray-200 transition-all duration-200"
+                    className="block w-full text-center bg-gray-100 text-gray-700 px-3 py-2.5 rounded-lg text-sm work-sans-semibold hover:bg-gray-200 transition-all duration-200"
                     onClick={closeSideMenu}
                   >
                     Create New Account
@@ -358,7 +385,7 @@ const BottomBar = () => {
 
           {/* App Version / Footer */}
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
-            <p className="text-center text-xs text-gray-500">
+            <p className="text-center text-xs text-gray-500 work-sans-medium">
               FlashFood v1.0 • Fresh & Fast
             </p>
           </div>
