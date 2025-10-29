@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 import { updateQuantity, removeFromCart, clearCart } from '../redux/slices/cartSlice';
-import { placeOrder } from '../redux/slices/orderSlice';
+import { placeOrder, clearError } from '../redux/slices/orderSlice';
 import { settingsService } from '../services/settingsService';
 
 const Cart = () => {
@@ -16,7 +16,13 @@ const Cart = () => {
   const navigate = useNavigate();
   
   const [settings, setSettings] = useState(null);
-  const [orderValidation, setOrderValidation] = useState({ valid: true });
+  const [orderValidation, setOrderValidation] = useState({ 
+    valid: true, 
+    isEnabled: false, 
+    minValue: 0, 
+    shortBy: 0,
+    message: ''
+  });
   const [deliveryFee, setDeliveryFee] = useState(0);
   const [taxAmount, setTaxAmount] = useState(0);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
@@ -25,6 +31,12 @@ const Cart = () => {
   const [isDeliveryAvailable, setIsDeliveryAvailable] = useState(true);
   const [matchedZoneDetails, setMatchedZoneDetails] = useState(null);
   const [deliveryFeeDetails, setDeliveryFeeDetails] = useState({ fee: 0, matchType: 'default' });
+  const [minimumOrderSettings, setMinimumOrderSettings] = useState(null);
+
+  // Clear error on component mount
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   // Get restaurant data for food orders
   const getRestaurantData = () => {
@@ -32,20 +44,98 @@ const Cart = () => {
       const restaurant = restaurants.find(r => r.id === restaurantId || r.restaurantid === restaurantId);
       return restaurant ? {
         name: restaurant.name,
-        cuisine: "",
+        cuisine: restaurant.cuisine || "",
         rating: restaurant.rating || '4.2',
         deliveryTime: restaurant.deliveryTime || '30 min',
-        costForTwo: restaurant.costForTwo || '250'
+        costForTwo: restaurant.costForTwo || '250',
+        image: restaurant.image || ''
       } : null;
     }
     return null;
   };
 
-  // Memoized settings loading function
+  // Load minimum order settings from app settings
+  const loadMinimumOrderSettings = useCallback(async () => {
+    try {
+      const minOrderSettings = await settingsService.getMinimumOrderSettings();
+      setMinimumOrderSettings(minOrderSettings);
+      return minOrderSettings;
+    } catch (error) {
+      console.error('Error loading minimum order settings:', error);
+      // Default fallback settings
+      const defaultSettings = {
+        enabled: true,
+        grocery: 100,
+        food: 50,
+        default: 50
+      };
+      setMinimumOrderSettings(defaultSettings);
+      return defaultSettings;
+    }
+  }, []);
+
+  // Enhanced validation function with minimum order check
+  const validateMinimumOrder = useCallback((orderType, amount, zoneDetails = null) => {
+    // If no minimum order settings loaded yet, assume valid
+    if (!minimumOrderSettings) {
+      return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
+    }
+
+    const isEnabled = minimumOrderSettings.enabled !== false;
+    
+    // If minimum order is disabled, return valid
+    if (!isEnabled) {
+      return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
+    }
+
+    // Determine minimum value based on order type and zone
+    let minValue = minimumOrderSettings.default || 0;
+    
+    // Priority: Zone-specific > Type-specific > Default
+    if (zoneDetails && zoneDetails.minimumOrderValue) {
+      minValue = zoneDetails.minimumOrderValue;
+    } 
+    else if (orderType === 'grocery' && minimumOrderSettings.grocery) {
+      minValue = minimumOrderSettings.grocery;
+    } 
+    else if (orderType === 'food' && minimumOrderSettings.food) {
+      minValue = minimumOrderSettings.food;
+    }
+
+    const shortBy = Math.max(0, minValue - amount);
+    const valid = amount >= minValue;
+
+    let message = '';
+    if (!valid) {
+      const zoneInfo = zoneName ? ` in ${zoneName}` : '';
+      message = `Minimum order value for ${orderType}${zoneInfo} is ₹${minValue}. Add ₹${shortBy} more to continue.`;
+    }
+    else{
+      setIsLoadingSettings(false)
+    }
+
+    return {
+      valid,
+      isEnabled: true,
+      minValue,
+      shortBy,
+      message
+    };
+  }, [minimumOrderSettings, zoneName]);
+
+  // Enhanced settings loading with minimum order validation
   const loadSettings = useCallback(async () => {
     try {
       setIsLoadingSettings(true);
-      const settingsData = await settingsService.getSettings();
+      
+      // Load minimum order settings first
+      const minOrderSettings = await loadMinimumOrderSettings();
+      
+      // Load other settings
+      const [settingsData] = await Promise.all([
+        settingsService.getSettings(),
+      ]);
+      
       setSettings(settingsData);
       
       const zipCode = selectedAddress?.zipCode;
@@ -57,7 +147,6 @@ const Cart = () => {
         const [
           zoneDetails,
           deliveryAvailable,
-          validation,
           feeResult,
           time,
           zone,
@@ -65,7 +154,6 @@ const Cart = () => {
         ] = await Promise.all([
           settingsService.getMatchedZoneDetails(zipCode, city, villageTown),
           settingsService.isDeliveryAvailable(zipCode, city, villageTown),
-          settingsService.validateOrder(type, totalAmount, zipCode, city, villageTown),
           settingsService.getDeliveryFee(type, zipCode, city, villageTown),
           settingsService.getDeliveryTime(zipCode, city, villageTown),
           settingsService.getZoneName(zipCode, city, villageTown),
@@ -74,22 +162,31 @@ const Cart = () => {
         
         setMatchedZoneDetails(zoneDetails);
         setIsDeliveryAvailable(deliveryAvailable);
-        setOrderValidation(validation);
         setDeliveryFee(feeResult.fee);
         setDeliveryFeeDetails(feeResult);
         setDeliveryTime(time);
         setZoneName(zone);
         setTaxAmount(tax);
+
+        // Validate minimum order with zone details
+        const validation = validateMinimumOrder(type, totalAmount, zoneDetails);
+        setOrderValidation(validation);
+        // setIsLoadingSettings(false)
       } else {
         // Default values when no address is selected
         const defaultFee = type === 'grocery' ? 20 : 30;
         setDeliveryFee(defaultFee);
         setDeliveryFeeDetails({ fee: defaultFee, matchType: 'default' });
         setTaxAmount(totalAmount * 0.05);
-        setOrderValidation({ valid: true });
         setDeliveryTime('30-45 min');
         setZoneName('Standard Delivery');
         setIsDeliveryAvailable(true);
+        
+        // Validate without zone details
+        const validation = validateMinimumOrder(type, totalAmount);
+        setOrderValidation(validation);
+        // setIsLoadingSettings(false)
+
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -98,18 +195,29 @@ const Cart = () => {
       setDeliveryFee(defaultFee);
       setDeliveryFeeDetails({ fee: defaultFee, matchType: 'default' });
       setTaxAmount(totalAmount * 0.05);
-      setOrderValidation({ valid: true });
       setDeliveryTime('30-45 min');
       setZoneName('Standard Delivery');
       setIsDeliveryAvailable(true);
+      
+      // Default validation on error
+      setOrderValidation({ valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' });
     } finally {
       setIsLoadingSettings(false);
     }
-  }, [type, totalAmount, selectedAddress]);
+  }, [type, totalAmount, selectedAddress, loadMinimumOrderSettings, validateMinimumOrder]);
 
+  // Load settings on component mount
   useEffect(() => {
     loadSettings();
   }, [loadSettings]);
+
+  // Update validation when cart items or total amount changes
+  useEffect(() => {
+    if (minimumOrderSettings && selectedAddress) {
+      const validation = validateMinimumOrder(type, totalAmount, matchedZoneDetails);
+      setOrderValidation(validation);
+    }
+  }, [totalAmount, minimumOrderSettings, type, selectedAddress, matchedZoneDetails, validateMinimumOrder]);
 
   // Empty cart state
   if (items.length === 0) {
@@ -142,132 +250,148 @@ const Cart = () => {
     dispatch(removeFromCart(itemId));
   };
 
- const validateOrderData = () => {
-  if (!user || !user.uid) {
-    throw new Error('Please login to place order');
-  }
-
-  if (!selectedAddress) {
-    throw new Error('Please select a delivery address');
-  }
-
-  if (!isDeliveryAvailable) {
-    throw new Error('Delivery is not available to your selected address');
-  }
-
-  if (!orderValidation.valid && orderValidation.isEnabled) {
-    throw new Error(`Minimum order value for ${type} in ${zoneName} is ₹${orderValidation.minValue}`);
-  }
-
-  if (items.length === 0) {
-    throw new Error('Cart cannot be empty');
-  }
-
-  // Validate address structure
-  const requiredAddressFields = ['name', 'street', 'city', 'state', 'zipCode', 'phone'];
-  for (const field of requiredAddressFields) {
-    if (!selectedAddress[field]) {
-      throw new Error(`Invalid address: Missing ${field}`);
+  // Enhanced order validation with minimum order check
+  const validateOrderData = () => {
+    if (!user || !user.uid) {
+      throw new Error('Please login to place order');
     }
-  }
-};
 
- const handlePlaceOrder = async () => {
-  try {
-    // Validate all data before proceeding
-    validateOrderData();
+    if (!selectedAddress) {
+      throw new Error('Please select a delivery address');
+    }
 
-    const grandTotal = totalAmount + deliveryFee + taxAmount;
-    const restaurantData = getRestaurantData();
-    
-    console.log('🛒 [Cart] Preparing order payload...');
-    
-    // Create clean order payload
-    const orderPayload = {
-      // User & Order Info
-      userId: user.uid,
-      type: type,
-      restaurantId: restaurantId || null,
-      
-      // Items
-      items: items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        category: item.category || '',
-        image: item.image || ''
-      })),
-      
-      // Pricing Details
-      pricing: {
-        itemsTotal: totalAmount,
-        deliveryFee: deliveryFee,
-        taxAmount: taxAmount,
-        taxPercentage: settings?.taxPercentage || 5,
-        grandTotal: grandTotal,
-        currency: 'INR'
-      },
-      
-      // Restaurant Data (for food orders)
-      ...(type === 'food' && restaurantData && { restaurant: restaurantData }),
-      
-      // Delivery Information
-      deliveryAddress: selectedAddress,
-      deliveryZone: zoneName,
-      deliveryTime: deliveryTime,
-      matchedZoneType: deliveryFeeDetails.matchType,
-      
-      // Order Status
-      paymentMethod: 'COD',
-      
-      // Metadata
-      itemCount: items.length,
-      customerName: selectedAddress.name,
-      customerPhone: selectedAddress.phone
-    };
+    if (!isDeliveryAvailable) {
+      throw new Error('Delivery is not available to your selected address');
+    }
 
-    console.log('📦 [Cart] Order payload:', orderPayload);
+    // Enhanced minimum order validation
+    if (orderValidation.isEnabled && !orderValidation.valid) {
+      throw new Error(orderValidation.message);
+    }
 
-    // Dispatch the order
-    const result = await dispatch(placeOrder(orderPayload)).unwrap();
-    
-    console.log('✅ [Cart] Order placed successfully:', result);
-    
-    // Clear cart and navigate on success
-    dispatch(clearCart());
-    navigate('/my-orders', { 
-      state: { 
-        orderSuccess: true,
-        orderId: result.id 
+    if (items.length === 0) {
+      throw new Error('Cart cannot be empty');
+    }
+
+    // Validate address structure
+    const requiredAddressFields = ['name', 'street', 'city', 'state', 'zipCode', 'phone'];
+    for (const field of requiredAddressFields) {
+      if (!selectedAddress[field]) {
+        throw new Error(`Invalid address: Missing ${field}`);
       }
-    });
-    
-  } catch (error) {
-    console.error('❌ [Cart] Order placement failed:', error);
-    
-    // Get the error message safely
-    const errorMessage = error?.message || 'Failed to place order. Please try again.';
-    
-    // Show specific error messages based on error content
-    if (errorMessage.includes('Please login')) {
-      alert('Please login to place order');
-      navigate('/login');
-    } else if (errorMessage.includes('address') || errorMessage.includes('Address')) {
-      alert(errorMessage);
-      navigate('/addresses');
-    } else if (errorMessage.includes('Minimum order') || errorMessage.includes('minimum')) {
-      alert(errorMessage);
-    } else if (errorMessage.includes('Delivery is not available') || errorMessage.includes('not available')) {
-      alert(errorMessage);
-      navigate('/addresses');
-    } else if (errorMessage.includes('Cart cannot be empty')) {
-      alert(errorMessage);
-    } else {
-      alert(errorMessage);
     }
-  }
-};
+
+    // Final safety check for minimum order
+    if (minimumOrderSettings?.enabled !== false) {
+      const minValue = matchedZoneDetails?.minimumOrderValue || 
+        (type === 'grocery' ? minimumOrderSettings?.grocery : minimumOrderSettings?.food) || 
+        minimumOrderSettings?.default || 0;
+      
+      if (totalAmount < minValue) {
+        throw new Error(`Order total (₹${totalAmount.toFixed(2)}) is below minimum requirement of ₹${minValue}`);
+      }
+    }
+  };
+
+  const handlePlaceOrder = async () => {
+    try {
+      // Validate all data before proceeding
+      validateOrderData();
+
+      const grandTotal = totalAmount + deliveryFee + taxAmount;
+      const restaurantData = getRestaurantData();
+      
+      console.log('🛒 [Cart] Preparing order payload...');
+      
+      // Create clean order payload
+      const orderPayload = {
+        // User & Order Info
+        userId: user.uid,
+        type: type,
+        restaurantId: restaurantId || null,
+        
+        // Items
+        items: items.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          category: item.category || '',
+          image: item.image || ''
+        })),
+        
+        // Pricing Details
+        pricing: {
+          itemsTotal: totalAmount,
+          deliveryFee: deliveryFee,
+          taxAmount: taxAmount,
+          taxPercentage: settings?.taxPercentage || 5,
+          grandTotal: grandTotal,
+          currency: 'INR',
+          meetsMinimumOrder: orderValidation.valid,
+          minimumOrderRequired: orderValidation.minValue
+        },
+        
+        // Restaurant Data (for food orders)
+        ...(type === 'food' && restaurantData && { restaurant: restaurantData }),
+        
+        // Delivery Information
+        deliveryAddress: selectedAddress,
+        deliveryZone: zoneName,
+        deliveryTime: deliveryTime,
+        matchedZoneType: deliveryFeeDetails.matchType,
+        
+        // Order Status
+        paymentMethod: 'COD',
+        
+        // Metadata
+        itemCount: items.length,
+        customerName: selectedAddress.name,
+        customerPhone: selectedAddress.phone,
+        minimumOrderValidation: orderValidation
+      };
+
+      console.log('📦 [Cart] Order payload:', orderPayload);
+
+      // Dispatch the order
+      const result = await dispatch(placeOrder(orderPayload)).unwrap();
+      
+      console.log('✅ [Cart] Order placed successfully:', result);
+      
+      // Clear cart and navigate on success
+      dispatch(clearCart());
+      navigate('/my-orders', { 
+        state: { 
+          orderSuccess: true,
+          orderId: result.id 
+        }
+      });
+      
+    } catch (error) {
+      console.error('❌ [Cart] Order placement failed:', error);
+      
+      // Get the error message safely
+      const errorMessage = error?.message || 'Failed to place order. Please try again.';
+      
+      // Show specific error messages based on error content
+      if (errorMessage.includes('Please login')) {
+        alert('Please login to place order');
+        navigate('/login');
+      } else if (errorMessage.includes('address') || errorMessage.includes('Address')) {
+        alert(errorMessage);
+        navigate('/addresses');
+      } else if (errorMessage.includes('Minimum order') || errorMessage.includes('minimum') || errorMessage.includes('below minimum')) {
+        alert(errorMessage);
+      } else if (errorMessage.includes('Delivery is not available') || errorMessage.includes('not available')) {
+        alert(errorMessage);
+        navigate('/addresses');
+      } else if (errorMessage.includes('Cart cannot be empty')) {
+        alert(errorMessage);
+      } else {
+        alert(errorMessage);
+      }
+    }
+  };
 
   const cartTitle = type === 'grocery' ? 'Grocery Cart' : 'Food Cart';
   const cartIcon = type === 'grocery' ? '🛒' : '🍽️';
@@ -318,6 +442,14 @@ const Cart = () => {
     total: item.price * item.quantity
   }));
 
+  // Determine if button should be disabled
+  const isButtonDisabled = 
+    loading || 
+    !selectedAddress || 
+    !orderValidation.valid || 
+    !isDeliveryAvailable || 
+    isLoadingSettings;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-4 pb-24">
@@ -342,6 +474,58 @@ const Cart = () => {
             {type === 'grocery' ? '🛒 Grocery Order' : '🍽️ Food Order'}
           </span>
         </div>
+
+        {/* Minimum Order Requirement Banner */}
+        {orderValidation.isEnabled && (
+          <div className={`mb-3 p-3 rounded-xl border ${
+            orderValidation.valid 
+              ? 'bg-green-50 border-green-200' 
+              : 'bg-yellow-50 border-yellow-200'
+          }`}>
+            <div className="flex items-start">
+              <span className={`text-lg mr-2 flex-shrink-0 ${
+                orderValidation.valid ? 'text-green-500' : 'text-yellow-500'
+              }`}>
+                {orderValidation.valid ? '✅' : '⚠️'}
+              </span>
+              <div className="flex-1">
+                <p className={`font-medium text-sm ${
+                  orderValidation.valid ? 'text-green-800' : 'text-yellow-800'
+                }`}>
+                  {orderValidation.valid ? 'Minimum order met!' : 'Minimum order required'}
+                </p>
+                <p className={`text-xs mt-1 ${
+                  orderValidation.valid ? 'text-green-700' : 'text-yellow-700'
+                }`}>
+                  {orderValidation.valid 
+                    ? `You've reached the minimum order value of ₹${orderValidation.minValue}`
+                    : `Add ₹${orderValidation.shortBy} more to reach minimum order of ₹${orderValidation.minValue}`
+                  }
+                </p>
+                
+                {/* Progress Bar */}
+                {orderValidation.isEnabled && orderValidation.minValue > 0 && (
+                  <div className="mt-2">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Order Progress</span>
+                      <span>₹{totalAmount.toFixed(0)} / ₹{orderValidation.minValue}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
+                        }`}
+                        style={{ 
+                          width: `${Math.min(100, (totalAmount / orderValidation.minValue) * 100)}%` 
+                        }}
+                      ></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Restaurant Info for Food Orders */}
         {type === 'food' && getRestaurantData() && (
@@ -396,23 +580,6 @@ const Cart = () => {
                 </p>
                 <p className="text-red-700 text-xs mt-1">
                   We don't deliver to {selectedAddress.villageTown || selectedAddress.city} ({selectedAddress.zipCode})
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Minimum Order Warning */}
-        {!orderValidation.valid && orderValidation.isEnabled && isDeliveryAvailable && (
-          <div className="mb-3 p-3 bg-yellow-50 border border-yellow-200 rounded-xl">
-            <div className="flex items-start">
-              <span className="text-yellow-500 text-lg mr-2 flex-shrink-0">⚠️</span>
-              <div>
-                <p className="text-yellow-800 font-medium text-sm">
-                  Minimum order not met
-                </p>
-                <p className="text-yellow-700 text-xs mt-1">
-                  Add ₹{orderValidation.shortBy} more for {zoneName}
                 </p>
               </div>
             </div>
@@ -554,7 +721,7 @@ const Cart = () => {
               <span>₹{grandTotal.toFixed(2)}</span>
             </div>
 
-            {/* Progress bar for minimum order */}
+            {/* Minimum Order Progress */}
             {orderValidation.isEnabled && orderValidation.minValue > 0 && isDeliveryAvailable && (
               <div className="mt-4">
                 <div className="flex justify-between text-xs text-gray-600 mb-1">
@@ -583,9 +750,9 @@ const Cart = () => {
           {/* Place Order Button */}
           <button
             onClick={handlePlaceOrder}
-            disabled={loading || !selectedAddress || !orderValidation.valid || !isDeliveryAvailable || isLoadingSettings}
+            disabled={isButtonDisabled}
             className={`w-full py-3 rounded-xl mt-4 font-medium text-sm transition-colors ${
-              !selectedAddress || !orderValidation.valid || !isDeliveryAvailable || isLoadingSettings
+              isButtonDisabled
                 ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
             }`}
