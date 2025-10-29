@@ -282,7 +282,7 @@ const MyOrders = () => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-4 pb-24">
+        <div className="container mx-auto px-4 py-4 pb-32"> {/* Increased bottom padding */}
           {/* Order Type Tabs - Enhanced with better mobile UX */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-1.5 mb-4 shadow-lg border border-gray-200/50">
             <div className="flex">
@@ -410,7 +410,7 @@ const MyOrders = () => {
               return (
                 <div
                   key={order.id}
-                  className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/60 overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+                  className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/60 overflow-hidden transition-all duration-300 hover:shadow-xl"
                 >
                   {/* Order Header - Enhanced */}
                   <div className="p-4 border-b border-gray-200/60">
@@ -519,9 +519,9 @@ const MyOrders = () => {
                     </div>
                   </div>
 
-                  {/* Expandable Section - Enhanced */}
+                  {/* Expandable Section - FIXED: Better mobile support */}
                   <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-                    expandedOrder === order.id ? 'max-h-[800px] opacity-100' : 'max-h-0 opacity-0'
+                    expandedOrder === order.id ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
                   }`}>
                     {/* Order Items */}
                     <div className="p-4 border-b border-gray-200/60 bg-gray-50/50">
@@ -622,8 +622,8 @@ const MyOrders = () => {
                       </div>
                     </div>
 
-                    {/* Payment Information Section - Enhanced */}
-                    <div className="p-4">
+                    {/* Payment Information Section - FIXED: Better spacing for mobile */}
+                    <div className="p-4 pb-6"> {/* Added extra bottom padding */}
                       <h4 className="work-sans-semibold text-gray-900 text-sm mb-3 flex items-center space-x-2">
                         <span>💳</span>
                         <span>Payment Information</span>
@@ -655,27 +655,29 @@ const MyOrders = () => {
                     </div>
                   </div>
 
-                  {/* Expand/Collapse Button */}
-                  <button
-                    onClick={() => toggleOrderExpand(order.id)}
-                    className="w-full p-4 border-t border-gray-200/60 flex items-center justify-center text-sm work-sans-semibold text-orange-600 hover:bg-orange-50/50 transition-all duration-200 active:bg-orange-100"
-                  >
-                    {expandedOrder === order.id ? (
-                      <>
-                        <span>Show Less</span>
-                        <svg className="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                        </svg>
-                      </>
-                    ) : (
-                      <>
-                        <span>View Details</span>
-                        <svg className="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </>
-                    )}
-                  </button>
+                  {/* Expand/Collapse Button - FIXED: Better positioning */}
+                  <div className="sticky bottom-0 bg-white border-t border-gray-200/60">
+                    <button
+                      onClick={() => toggleOrderExpand(order.id)}
+                      className="w-full p-4 flex items-center justify-center text-sm work-sans-semibold text-orange-600 hover:bg-orange-50/50 transition-all duration-200 active:bg-orange-100"
+                    >
+                      {expandedOrder === order.id ? (
+                        <>
+                          <span>Show Less</span>
+                          <svg className="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </>
+                      ) : (
+                        <>
+                          <span>View Details</span>
+                          <svg className="w-4 h-4 ml-2 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </>
+                      )}
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -715,7 +717,7 @@ const MyOrders = () => {
 
           {/* Last Refreshed Info */}
           {lastRefreshed && filteredOrders.length > 0 && (
-            <div className="text-center pt-8 pb-4">
+            <div className="text-center pt-8 pb-6"> {/* Increased bottom padding */}
               <p className="text-xs text-gray-500 bg-white/80 backdrop-blur-lg inline-block px-4 py-2 rounded-full border border-gray-200/60 work-sans-medium">
                 🔄 Updated {new Date(lastRefreshed).toLocaleTimeString('en-US', { 
                   hour: '2-digit', 
