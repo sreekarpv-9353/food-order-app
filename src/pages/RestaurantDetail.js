@@ -1,7 +1,7 @@
 // src/pages/RestaurantDetail.js
 import { useSelector, useDispatch } from 'react-redux';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/slices/cartSlice';
-import { useParams, useLocation } from 'react-router-dom';
+import { useParams, useLocation, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 
 const RestaurantDetail = () => {
@@ -10,6 +10,7 @@ const RestaurantDetail = () => {
   const { items, restaurantId: cartRestaurantId } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const location = useLocation();
+  const navigate = useNavigate();
   const passedImage = location.state?.image || null;
 
   console.log('RestaurantDetail - Looking for restaurant with id:', id);
@@ -19,6 +20,10 @@ const RestaurantDetail = () => {
   const restaurant = restaurants.find(r => r.id === id || r.restaurantid === id);
 
   console.log('Found restaurant:', restaurant);
+
+  // Calculate total cart items and price
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   if (!restaurant) {
     return (
@@ -60,6 +65,10 @@ const RestaurantDetail = () => {
     return cartItem ? cartItem.quantity : 0;
   };
 
+  const handleViewCart = () => {
+    navigate('/cart');
+  };
+
   // Check if we're adding from a different restaurant
   const isDifferentRestaurant = cartRestaurantId && cartRestaurantId !== restaurant.id;
 
@@ -91,7 +100,7 @@ const RestaurantDetail = () => {
         </style>
       </Helmet>
       
-      <div className="min-h-screen bg-gray-50 pb-20 work-sans">
+      <div className="min-h-screen bg-gray-50 pb-24 work-sans">
         <div className="container mx-auto px-4 py-4">
           {/* Restaurant Header Card */}
           <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4 border border-gray-100">
@@ -208,6 +217,32 @@ const RestaurantDetail = () => {
             </div>
           )}
         </div>
+
+        {/* View Cart Button - Fixed at bottom */}
+        {cartItemCount > 0 && (
+          <div className="fixed bottom-20 left-0 right-0 z-30 px-4">
+            <div className="container mx-auto">
+              <button
+                onClick={handleViewCart}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 work-sans-semibold flex justify-between items-center"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="bg-white bg-opacity-20 rounded-full p-1">
+                    <span className="text-sm">🛒</span>
+                  </span>
+                  <div className="text-left">
+                    <p className="text-sm work-sans-semibold">{cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}</p>
+                    <p className="text-xs opacity-90 work-sans-medium">View Cart</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm work-sans-bold">₹{cartTotal.toFixed(2)}</p>
+                  <p className="text-xs opacity-90 work-sans-medium">Total</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );

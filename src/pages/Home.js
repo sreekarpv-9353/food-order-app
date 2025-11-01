@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { fetchRestaurants } from '../redux/slices/restaurantSlice';
 import { fetchGroceryItems } from '../redux/slices/grocerySlice';
 import { addToCart, updateQuantity, removeFromCart } from '../redux/slices/cartSlice';
@@ -28,6 +28,7 @@ const Home = () => {
   const { items, type: cartType } = useSelector((state) => state.cart);
   const { user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const restaurantImages = [rest1, rest2, rest3];
 
@@ -137,6 +138,14 @@ const Home = () => {
   const handleClearSearch = () => {
     setSearchQuery('');
   };
+
+  const handleViewCart = () => {
+    navigate('/cart');
+  };
+
+  // Calculate total cart items and price
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
 
   // Get current minimum order info
   const currentMinOrder = activeTab === 'food' ? minOrderInfo.food : minOrderInfo.grocery;
@@ -494,6 +503,32 @@ const Home = () => {
             </div>
           )}
         </div>
+
+        {/* View Cart Button - Fixed at bottom (shows for both food and grocery when items are in cart) */}
+        {cartItemCount > 0 && (
+          <div className="fixed bottom-20 left-0 right-0 z-30 px-4">
+            <div className="container mx-auto">
+              <button
+                onClick={handleViewCart}
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 work-sans-semibold flex justify-between items-center"
+              >
+                <div className="flex items-center space-x-2">
+                  <span className="bg-white bg-opacity-20 rounded-full p-1">
+                    <span className="text-sm">🛒</span>
+                  </span>
+                  <div className="text-left">
+                    <p className="text-sm work-sans-semibold">{cartItemCount} {cartItemCount === 1 ? 'item' : 'items'}</p>
+                    <p className="text-xs opacity-90 work-sans-medium">View Cart</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm work-sans-bold">₹{cartTotal.toFixed(2)}</p>
+                  <p className="text-xs opacity-90 work-sans-medium">Total</p>
+                </div>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile-specific styles */}
