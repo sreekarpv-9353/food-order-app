@@ -70,49 +70,59 @@ const BottomBar = () => {
               font-family: 'Work Sans', sans-serif;
               font-weight: 700;
             }
+            .safe-area-bottom {
+              padding-bottom: env(safe-area-inset-bottom);
+            }
+            .min-h-safe {
+              min-height: calc(100vh - env(safe-area-inset-bottom));
+            }
           `}
         </style>
       </Helmet>
 
-      {/* Top Header with Profile & Menu */}
-      <header className={`${colors.primary} text-white shadow-xl sticky top-0 z-50 work-sans`}>
-        <div className="container mx-auto px-4 py-3">
+      {/* Top Header with Profile & Menu - Reduced Height */}
+      <header className={`${colors.primary} text-white shadow-lg sticky top-0 z-50 work-sans safe-area-top`}>
+        <div className="container mx-auto px-4 py-2">
           <div className="flex justify-between items-center">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-2">
-              <div className="bg-white bg-opacity-20 rounded-lg p-1">
-                <span className="text-xl">🍔</span>
+              <div className="bg-white bg-opacity-20 rounded p-1">
+                <img 
+                  src={require('../assets/homeicon.png')} 
+                  alt="FlashFood" 
+                  className="w-5 h-5 object-contain rounded"
+                />
               </div>
               <div>
-                <h1 className="text-lg work-sans-bold tracking-tight">FlashFood</h1>
-                <p className="text-xs opacity-80 -mt-1 work-sans-medium">Quick & Fresh</p>
+                <h1 className="text-base work-sans-bold tracking-tight">FlashFood</h1>
+                <p className="text-xs opacity-80 -mt-0.5 work-sans-medium">Quick & Fresh</p>
               </div>
             </Link>
-            
+
             {/* User Info & Menu Button */}
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               {user && (
-                <div className="hidden sm:flex items-center space-x-2 bg-white bg-opacity-15 rounded-full px-3 py-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                  <span className="text-sm work-sans-medium">Hi, {user.name?.split(' ')[0]}</span>
+                <div className="hidden xs:flex items-center space-x-1 bg-white bg-opacity-15 rounded-full px-2 py-0.5">
+                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
+                  <span className="text-xs work-sans-medium">Hi, {user.name?.split(' ')[0]}</span>
                 </div>
               )}
               
               <button
                 onClick={() => setSideMenuOpen(!sideMenuOpen)}
-                className={`p-2 rounded-xl transition-all duration-200 ${
+                className={`p-1.5 rounded-lg transition-all duration-200 ${
                   sideMenuOpen ? 'bg-white bg-opacity-20' : 'hover:bg-white hover:bg-opacity-15'
                 }`}
                 aria-label="Toggle menu"
               >
-                <div className="w-6 h-6 flex flex-col justify-center items-center">
-                  <div className={`w-5 h-0.5 bg-white transition-all duration-200 ${
+                <div className="w-5 h-5 flex flex-col justify-center items-center">
+                  <div className={`w-4 h-0.5 bg-white transition-all duration-200 ${
                     sideMenuOpen ? 'rotate-45 translate-y-0.5' : '-translate-y-1'
                   }`}></div>
-                  <div className={`w-5 h-0.5 bg-white transition-all duration-200 ${
+                  <div className={`w-4 h-0.5 bg-white transition-all duration-200 ${
                     sideMenuOpen ? 'opacity-0' : 'opacity-100'
                   }`}></div>
-                  <div className={`w-5 h-0.5 bg-white transition-all duration-200 ${
+                  <div className={`w-4 h-0.5 bg-white transition-all duration-200 ${
                     sideMenuOpen ? '-rotate-45 -translate-y-0.5' : 'translate-y-1'
                   }`}></div>
                 </div>
@@ -122,56 +132,56 @@ const BottomBar = () => {
         </div>
       </header>
 
-      {/* Bottom Navigation Bar - Simplified */}
-      <nav className={`${colors.primary} text-white shadow-2xl fixed bottom-0 left-0 right-0 z-40 border-t border-orange-400 pb-safe work-sans`}>
+      {/* Bottom Navigation Bar - Reduced Height */}
+      <nav className={`${colors.primary} text-white shadow-2xl fixed bottom-0 left-0 right-0 z-40 border-t border-orange-400 safe-area-bottom work-sans`}>
         <div className="container mx-auto">
           {user ? (
-            <div className="flex justify-around items-center py-2 px-1">
+            <div className="flex justify-around items-center py-1 px-1">
               {/* Home */}
               <Link 
                 to="/" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[20%] ${
                   isActiveRoute('/') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
                   🏠
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Home</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Home</span>
               </Link>
               
               {/* Orders */}
               <Link 
                 to="/my-orders" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[20%] ${
                   isActiveRoute('/my-orders') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/my-orders') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/my-orders') ? 'scale-110' : ''}`}>
                   📦
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Orders</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Orders</span>
               </Link>
               
               {/* Cart with Badge */}
               <Link 
                 to="/cart" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 relative ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 relative flex-1 max-w-[20%] ${
                   isActiveRoute('/cart') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/cart') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/cart') ? 'scale-110' : ''}`}>
                   🛒
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Cart</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Cart</span>
                 {cartItemCount > 0 && (
-                  <span className={`absolute -top-1 -right-1 ${colors.badge} text-white rounded-full w-5 h-5 text-xs flex items-center justify-center work-sans-bold shadow-lg animate-pulse`}>
+                  <span className={`absolute -top-1 -right-1 ${colors.badge} text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center work-sans-bold shadow animate-pulse`}>
                     {cartItemCount > 9 ? '9+' : cartItemCount}
                   </span>
                 )}
@@ -180,77 +190,77 @@ const BottomBar = () => {
               {/* Menu Button */}
               <button
                 onClick={() => setSideMenuOpen(true)}
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[20%] ${
                   sideMenuOpen 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${sideMenuOpen ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${sideMenuOpen ? 'scale-110' : ''}`}>
                   ⋮
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Menu</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Menu</span>
               </button>
             </div>
           ) : (
-            <div className="flex justify-around items-center py-2 px-1">
+            <div className="flex justify-around items-center py-1 px-1">
               {/* Home for Guests */}
               <Link 
                 to="/" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[30%] ${
                   isActiveRoute('/') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/') ? 'scale-110' : ''}`}>
                   🏠
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Home</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Home</span>
               </Link>
               
               {/* Login */}
               <Link 
                 to="/login" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[30%] ${
                   isActiveRoute('/login') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/login') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/login') ? 'scale-110' : ''}`}>
                   🔑
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Login</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Login</span>
               </Link>
               
               {/* Sign Up */}
               <Link 
                 to="/signup" 
-                className={`flex flex-col items-center p-3 rounded-2xl transition-all duration-200 transform active:scale-95 ${
+                className={`flex flex-col items-center p-2 rounded-xl transition-all duration-200 transform active:scale-95 flex-1 max-w-[30%] ${
                   isActiveRoute('/signup') 
-                    ? `${colors.active} shadow-lg scale-105` 
+                    ? `${colors.active} shadow scale-105` 
                     : 'hover:bg-white hover:bg-opacity-10'
                 }`}
               >
-                <div className={`text-xl mb-1 transition-transform ${isActiveRoute('/signup') ? 'scale-110' : ''}`}>
+                <div className={`text-lg mb-0.5 transition-transform ${isActiveRoute('/signup') ? 'scale-110' : ''}`}>
                   ✨
                 </div>
-                <span className="text-xs work-sans-medium tracking-wide">Sign Up</span>
+                <span className="text-xs work-sans-medium truncate w-full text-center">Sign Up</span>
               </Link>
             </div>
           )}
         </div>
       </nav>
 
-      {/* Side Menu Overlay */}
+      {/* Side Menu Overlay - Mobile Optimized */}
       <div
         className={`fixed inset-0 z-50 transition-all duration-300 work-sans ${
           sideMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={closeSideMenu}
       >
-        {/* Backdrop - Now clickable to close menu */}
+        {/* Backdrop */}
         <div 
           className={`absolute inset-0 bg-black transition-opacity duration-300 ${
             sideMenuOpen ? 'opacity-60' : 'opacity-0'
@@ -258,9 +268,9 @@ const BottomBar = () => {
           onClick={closeSideMenu}
         ></div>
         
-        {/* Side Menu Panel - Now only 80% width on mobile */}
+        {/* Side Menu Panel - Mobile Optimized */}
         <div 
-          className={`absolute top-0 right-0 h-full w-80 max-w-[85vw] ${colors.menuBg} shadow-2xl transform transition-transform duration-300 ${
+          className={`absolute top-0 right-0 h-full w-80 max-w-[90vw] ${colors.menuBg} shadow-2xl transform transition-transform duration-300 ${
             sideMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
           onClick={(e) => e.stopPropagation()}
@@ -277,21 +287,21 @@ const BottomBar = () => {
           </button>
 
           {/* Menu Header with Profile */}
-          <div className={`${colors.primary} text-white p-6 pt-12`}>
-            <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white work-sans-bold text-lg">
+          <div className={`${colors.primary} text-white p-4 pt-12 safe-area-top`}>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center text-white work-sans-bold text-base">
                 {user ? user.name?.charAt(0)?.toUpperCase() : '👤'}
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="work-sans-bold text-base truncate">
+                <h2 className="work-sans-bold text-sm truncate">
                   {user ? user.name : 'Guest User'}
                 </h2>
-                <p className="text-orange-100 text-xs truncate work-sans-medium">
+                <p className="text-orange-100 text-xs truncate work-sans-medium mt-0.5">
                   {user ? user.email : 'Sign in for better experience'}
                 </p>
                 {user && (
                   <div className="flex items-center space-x-1 mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                     <span className="text-xs text-orange-100 work-sans-medium">Online</span>
                   </div>
                 )}
@@ -300,47 +310,47 @@ const BottomBar = () => {
           </div>
 
           {/* Menu Items */}
-          <div className="py-4 max-h-[calc(100vh-200px)] overflow-y-auto">
+          <div className="py-3 max-h-[calc(100vh-180px)] overflow-y-auto safe-area-bottom">
             {user ? (
               <>
                 {/* Address */}
                 <Link 
                   to="/addresses" 
-                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-lg text-gray-600">📍</span>
-                  <div>
+                  <span className="text-base text-gray-600">📍</span>
+                  <div className="flex-1 min-w-0">
                     <p className="work-sans-medium text-gray-900 text-sm">My Addresses</p>
-                    <p className="text-gray-500 text-xs work-sans-medium">Manage delivery addresses</p>
+                    <p className="text-gray-500 text-xs work-sans-medium mt-0.5">Manage delivery addresses</p>
                   </div>
                 </Link>
 
                 {/* FAQ */}
                 <Link 
                   to="/faq" 
-                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-lg text-gray-600">❓</span>
-                  <div>
+                  <span className="text-base text-gray-600">❓</span>
+                  <div className="flex-1 min-w-0">
                     <p className="work-sans-medium text-gray-900 text-sm">Help & FAQ</p>
-                    <p className="text-gray-500 text-xs work-sans-medium">Get help and support</p>
+                    <p className="text-gray-500 text-xs work-sans-medium mt-0.5">Get help and support</p>
                   </div>
                 </Link>
 
                 {/* Divider */}
-                <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t border-gray-200 my-1 mx-4"></div>
 
                 {/* Sign Out */}
                 <button 
                   onClick={handleSignOut}
-                  className="w-full flex items-center space-x-3 px-4 py-3 hover:bg-red-50 transition-colors border-l-4 border-transparent hover:border-red-500 text-left"
+                  className="w-full flex items-center space-x-3 px-4 py-2.5 hover:bg-red-50 transition-colors border-l-4 border-transparent hover:border-red-500 text-left"
                 >
-                  <span className="text-lg text-red-500">🚪</span>
-                  <div>
+                  <span className="text-base text-red-500">🚪</span>
+                  <div className="flex-1 min-w-0">
                     <p className="work-sans-medium text-red-600 text-sm">Sign Out</p>
-                    <p className="text-red-400 text-xs work-sans-medium">Logout from your account</p>
+                    <p className="text-red-400 text-xs work-sans-medium mt-0.5">Logout from your account</p>
                   </div>
                 </button>
               </>
@@ -349,31 +359,31 @@ const BottomBar = () => {
                 {/* FAQ for Guests */}
                 <Link 
                   to="/faq" 
-                  className="flex items-center space-x-3 px-4 py-3 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
+                  className="flex items-center space-x-3 px-4 py-2.5 hover:bg-gray-50 transition-colors border-l-4 border-transparent hover:border-orange-500"
                   onClick={closeSideMenu}
                 >
-                  <span className="text-lg text-gray-600">❓</span>
-                  <div>
+                  <span className="text-base text-gray-600">❓</span>
+                  <div className="flex-1 min-w-0">
                     <p className="work-sans-medium text-gray-900 text-sm">Help & FAQ</p>
-                    <p className="text-gray-500 text-xs work-sans-medium">Get help and support</p>
+                    <p className="text-gray-500 text-xs work-sans-medium mt-0.5">Get help and support</p>
                   </div>
                 </Link>
 
                 {/* Divider */}
-                <div className="border-t border-gray-200 my-2"></div>
+                <div className="border-t border-gray-200 my-1 mx-4"></div>
 
                 {/* Auth Buttons for Guests */}
                 <div className="px-4 py-3 space-y-2">
                   <Link 
                     to="/login" 
-                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2.5 rounded-lg text-sm work-sans-semibold hover:shadow-lg transition-all duration-200"
+                    className="block w-full text-center bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-2 rounded-lg text-sm work-sans-semibold hover:shadow transition-all duration-200 active:scale-95"
                     onClick={closeSideMenu}
                   >
                     Sign In to Account
                   </Link>
                   <Link 
                     to="/signup" 
-                    className="block w-full text-center bg-gray-100 text-gray-700 px-3 py-2.5 rounded-lg text-sm work-sans-semibold hover:bg-gray-200 transition-all duration-200"
+                    className="block w-full text-center bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm work-sans-semibold hover:bg-gray-200 transition-all duration-200 active:scale-95"
                     onClick={closeSideMenu}
                   >
                     Create New Account
@@ -384,7 +394,7 @@ const BottomBar = () => {
           </div>
 
           {/* App Version / Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
+          <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gray-200 bg-white safe-area-bottom">
             <p className="text-center text-xs text-gray-500 work-sans-medium">
               FlashFood v1.0 • Fresh & Fast
             </p>
@@ -392,9 +402,17 @@ const BottomBar = () => {
         </div>
       </div>
 
-      {/* Add custom styles for safe areas */}
+      {/* Add custom styles for mobile optimization */}
       <style jsx>{`
-        .pb-safe {
+        @media (max-width: 360px) {
+          .text-xs {
+            font-size: 0.65rem;
+          }
+        }
+        .safe-area-top {
+          padding-top: env(safe-area-inset-top);
+        }
+        .safe-area-bottom {
           padding-bottom: env(safe-area-inset-bottom);
         }
       `}</style>
