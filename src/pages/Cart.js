@@ -58,17 +58,23 @@ const Cart = () => {
   // Load minimum order settings from app settings
   const loadMinimumOrderSettings = useCallback(async () => {
     try {
-      const minOrderSettings = await settingsService.getMinimumOrderSettings();
+      const appSettings = await settingsService.getSettings();
+      const minOrderSettings = {
+        isFoodMinOrderEnabled: appSettings.isFoodMinOrderEnabled || false,
+        isGroceryMinOrderEnabled: appSettings.isGroceryMinOrderEnabled || false,
+        foodMinOrderValue: appSettings.foodMinOrderValue || 0,
+        groceryMinOrderValue: appSettings.groceryMinOrderValue || 0
+      };
       setMinimumOrderSettings(minOrderSettings);
       return minOrderSettings;
     } catch (error) {
       console.error('Error loading minimum order settings:', error);
       // Default fallback settings
       const defaultSettings = {
-        enabled: true,
-        grocery: 100,
-        food: 50,
-        default: 50
+        isFoodMinOrderEnabled: false,
+        isGroceryMinOrderEnabled: false,
+        foodMinOrderValue: 0,
+        groceryMinOrderValue: 0
       };
       setMinimumOrderSettings(defaultSettings);
       return defaultSettings;
@@ -82,39 +88,32 @@ const Cart = () => {
       return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
     }
 
-    const isEnabled = minimumOrderSettings.enabled !== false;
+    // Check if minimum order is enabled for this order type
+    const isEnabled = orderType === 'food' 
+      ? minimumOrderSettings.isFoodMinOrderEnabled
+      : minimumOrderSettings.isGroceryMinOrderEnabled;
     
     // If minimum order is disabled, return valid
     if (!isEnabled) {
       return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
     }
 
-    // Determine minimum value based on order type and zone
-    let minValue = minimumOrderSettings.default || 0;
-    
-    // Priority: Zone-specific > Type-specific > Default
-    if (zoneDetails && zoneDetails.minimumOrderValue) {
-      minValue = zoneDetails.minimumOrderValue;
-    } 
-    else if (orderType === 'grocery' && minimumOrderSettings.grocery) {
-      minValue = minimumOrderSettings.grocery;
-    } 
-    else if (orderType === 'food' && minimumOrderSettings.food) {
-      minValue = minimumOrderSettings.food;
-    }
+    // Determine minimum value based on order type
+    const minValue = orderType === 'food' 
+      ? minimumOrderSettings.foodMinOrderValue 
+      : minimumOrderSettings.groceryMinOrderValue;
 
     const shortBy = Math.max(0, minValue - amount);
     const valid = amount >= minValue;
 
     let message = '';
     if (!valid) {
-      const zoneInfo = zoneName ? ` in ${zoneName}` : '';
-      message = `Minimum order value for ${orderType}${zoneInfo} is ₹${minValue}. Add ₹${shortBy} more to continue.`;
+      message = `Minimum order value for ${orderType} is ₹${minValue}. Add ₹${shortBy} more to continue.`;
     }
     else{
-      setIsLoadingSettings(false)
+        setIsLoadingSettings(false)
     }
-
+    
     return {
       valid,
       isEnabled: true,
@@ -122,7 +121,7 @@ const Cart = () => {
       shortBy,
       message
     };
-  }, [minimumOrderSettings, zoneName]);
+  }, [minimumOrderSettings]);
 
   // Enhanced settings loading with minimum order validation
   const loadSettings = useCallback(async () => {
@@ -172,7 +171,6 @@ const Cart = () => {
         // Validate minimum order with zone details
         const validation = validateMinimumOrder(type, totalAmount, zoneDetails);
         setOrderValidation(validation);
-        // setIsLoadingSettings(false)
       } else {
         // Default values when no address is selected
         const defaultFee = type === 'grocery' ? 20 : 30;
@@ -186,8 +184,6 @@ const Cart = () => {
         // Validate without zone details
         const validation = validateMinimumOrder(type, totalAmount);
         setOrderValidation(validation);
-        // setIsLoadingSettings(false)
-
       }
     } catch (error) {
       console.error('Error loading settings:', error);
@@ -219,6 +215,9 @@ const Cart = () => {
       setOrderValidation(validation);
     }
   }, [totalAmount, minimumOrderSettings, type, selectedAddress, matchedZoneDetails, validateMinimumOrder]);
+
+  // Determine if we should show minimum order info
+  const shouldShowMinOrderInfo = orderValidation.isEnabled && !orderValidation.valid;
 
   // Empty cart state
   if (items.length === 0) {
@@ -283,13 +282,19 @@ const Cart = () => {
     }
 
     // Final safety check for minimum order
-    if (minimumOrderSettings?.enabled !== false) {
-      const minValue = matchedZoneDetails?.minimumOrderValue || 
-        (type === 'grocery' ? minimumOrderSettings?.grocery : minimumOrderSettings?.food) || 
-        minimumOrderSettings?.default || 0;
+    if (minimumOrderSettings) {
+      const isEnabled = type === 'food' 
+        ? minimumOrderSettings.isFoodMinOrderEnabled
+        : minimumOrderSettings.isGroceryMinOrderEnabled;
       
-      if (totalAmount < minValue) {
-        throw new Error(`Order total (₹${totalAmount.toFixed(2)}) is below minimum requirement of ₹${minValue}`);
+      if (isEnabled) {
+        const minValue = type === 'food' 
+          ? minimumOrderSettings.foodMinOrderValue
+          : minimumOrderSettings.groceryMinOrderValue;
+        
+        if (totalAmount < minValue) {
+          throw new Error(`Order total (₹${totalAmount.toFixed(2)}) is below minimum requirement of ₹${minValue}`);
+        }
       }
     }
   };
@@ -361,21 +366,15 @@ const Cart = () => {
       
       // Clear cart and navigate on success
       dispatch(clearCart());
-      // navigate('/my-orders', { 
-      //   state: { 
-      //     orderSuccess: true,
-      //     orderId: result.id 
-      //   }
-      // });
       navigate('/order-success', { 
-      state: { 
-        orderSuccess: true,
-        orderId: result.id,
-        orderType: type,
-        grandTotal: grandTotal,
-        estimatedTime: deliveryTime
-      }
-    });
+        state: { 
+          orderSuccess: true,
+          orderId: result.id,
+          orderType: type,
+          grandTotal: grandTotal,
+          estimatedTime: deliveryTime
+        }
+      });
       
     } catch (error) {
       console.error('❌ [Cart] Order placement failed:', error);
@@ -512,36 +511,23 @@ const Cart = () => {
             </span>
           </div>
 
-          {/* Minimum Order Requirement Banner */}
-          {orderValidation.isEnabled && (
-            <div className={`mb-3 p-3 rounded-xl border ${
-              orderValidation.valid 
-                ? 'bg-green-50 border-green-200' 
-                : 'bg-yellow-50 border-yellow-200'
-            }`}>
+          {/* Minimum Order Requirement Banner - Only show when minimum order is enabled AND NOT met */}
+          {shouldShowMinOrderInfo && (
+            <div className={`mb-3 p-3 rounded-xl border bg-yellow-50 border-yellow-200`}>
               <div className="flex items-start">
-                <span className={`text-lg mr-2 flex-shrink-0 ${
-                  orderValidation.valid ? 'text-green-500' : 'text-yellow-500'
-                }`}>
-                  {orderValidation.valid ? '✅' : '⚠️'}
+                <span className={`text-lg mr-2 flex-shrink-0 text-yellow-500`}>
+                  ⚠️
                 </span>
                 <div className="flex-1">
-                  <p className={`work-sans-medium text-sm ${
-                    orderValidation.valid ? 'text-green-800' : 'text-yellow-800'
-                  }`}>
-                    {orderValidation.valid ? 'Minimum order met!' : 'Minimum order required'}
+                  <p className={`work-sans-medium text-sm text-yellow-800`}>
+                    Minimum order required
                   </p>
-                  <p className={`text-xs mt-1 work-sans-medium ${
-                    orderValidation.valid ? 'text-green-700' : 'text-yellow-700'
-                  }`}>
-                    {orderValidation.valid 
-                      ? `You've reached the minimum order value of ₹${orderValidation.minValue}`
-                      : `Add ₹${orderValidation.shortBy} more to reach minimum order of ₹${orderValidation.minValue}`
-                    }
+                  <p className={`text-xs mt-1 work-sans-medium text-yellow-700`}>
+                    Add ₹{orderValidation.shortBy} more to reach minimum order of ₹{orderValidation.minValue}
                   </p>
                   
                   {/* Progress Bar */}
-                  {orderValidation.isEnabled && orderValidation.minValue > 0 && (
+                  {orderValidation.minValue > 0 && (
                     <div className="mt-2">
                       <div className="flex justify-between text-xs mb-1 work-sans-medium">
                         <span>Order Progress</span>
@@ -549,9 +535,7 @@ const Cart = () => {
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
                         <div 
-                          className={`h-2 rounded-full transition-all duration-300 ${
-                            orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
-                          }`}
+                          className={`h-2 rounded-full transition-all duration-300 bg-yellow-500`}
                           style={{ 
                             width: `${Math.min(100, (totalAmount / orderValidation.minValue) * 100)}%` 
                           }}
@@ -623,51 +607,55 @@ const Cart = () => {
             </div>
           )}
 
-          {/* Cart Items Section */}
-          <div className="mb-6">
-            <h2 className="text-lg work-sans-bold mb-3">Cart Items</h2>
-            <div className="space-y-3">
-              {items.map(item => (
-                <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 mr-3">
-                      <h3 className="text-sm work-sans-semibold text-gray-900 mb-1">{item.name}</h3>
-                      <p className="text-gray-600 work-sans-medium text-sm">₹{item.price}</p>
-                      {item.category && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block work-sans-medium">
-                          {item.category}
-                        </span>
-                      )}
-                    </div>
-                    
-                    <div className="flex flex-col items-end space-y-2">
-                      <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
+            {/* Cart Items Section */}
+            <div className="mb-6">
+              <h2 className="text-lg work-sans-bold mb-3">Cart Items</h2>
+              <div className="space-y-3">
+                {items.map(item => (
+                  <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
+                      {/* Item Details - Left Side */}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm work-sans-semibold text-gray-900 mb-1 break-words leading-tight">
+                          {item.name}
+                        </h3>
+                        <p className="text-gray-600 work-sans-medium text-sm">₹{item.price}</p>
+                        {item.category && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block work-sans-medium break-words">
+                            {item.category}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Quantity Controls - Right Side */}
+                      <div className="flex flex-col items-end space-y-2 flex-shrink-0">
+                        <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
+                          <button
+                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                            className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold min-w-[28px]"
+                          >
+                            <span className="text-sm text-gray-600">−</span>
+                          </button>
+                          <span className="work-sans-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                            className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold min-w-[28px]"
+                          >
+                            <span className="text-sm text-gray-600">+</span>
+                          </button>
+                        </div>
                         <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                          className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold"
+                          onClick={() => handleRemoveItem(item.id)}
+                          className="text-red-500 hover:text-red-700 text-xs work-sans-medium whitespace-nowrap"
                         >
-                          <span className="text-sm text-gray-600">−</span>
-                        </button>
-                        <span className="work-sans-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
-                        <button
-                          onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                          className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold"
-                        >
-                          <span className="text-sm text-gray-600">+</span>
+                          Remove
                         </button>
                       </div>
-                      <button
-                        onClick={() => handleRemoveItem(item.id)}
-                        className="text-red-500 hover:text-red-700 text-xs work-sans-medium"
-                      >
-                        Remove
-                      </button>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
 
           {/* Order Summary Section */}
           <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mb-6">
@@ -758,8 +746,8 @@ const Cart = () => {
                 <span>₹{grandTotal.toFixed(2)}</span>
               </div>
 
-              {/* Minimum Order Progress */}
-              {orderValidation.isEnabled && orderValidation.minValue > 0 && isDeliveryAvailable && (
+              {/* Minimum Order Progress - Only show when minimum order is enabled AND NOT met */}
+              {shouldShowMinOrderInfo && orderValidation.minValue > 0 && isDeliveryAvailable && (
                 <div className="mt-4">
                   <div className="flex justify-between text-xs text-gray-600 mb-1 work-sans-medium">
                     <span>Order Progress ({zoneName})</span>
@@ -767,19 +755,15 @@ const Cart = () => {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-1.5">
                     <div 
-                      className={`h-1.5 rounded-full transition-all duration-300 ${
-                        orderValidation.valid ? 'bg-green-500' : 'bg-yellow-500'
-                      }`}
+                      className={`h-1.5 rounded-full transition-all duration-300 bg-yellow-500`}
                       style={{ 
                         width: `${progressPercentage}%` 
                       }}
                     ></div>
                   </div>
-                  {!orderValidation.valid && (
-                    <p className="text-yellow-600 text-xs mt-1 text-center work-sans-medium">
-                      Add ₹{orderValidation.shortBy} more to place order
-                    </p>
-                  )}
+                  <p className="text-yellow-600 text-xs mt-1 text-center work-sans-medium">
+                    Add ₹{orderValidation.shortBy} more to place order
+                  </p>
                 </div>
               )}
             </div>
@@ -824,7 +808,7 @@ const Cart = () => {
               </p>
             )}
 
-            {selectedAddress && isDeliveryAvailable && !orderValidation.valid && orderValidation.isEnabled && (
+            {selectedAddress && isDeliveryAvailable && shouldShowMinOrderInfo && (
               <p className="text-yellow-600 text-xs mt-2 text-center work-sans-medium">
                 Add ₹{orderValidation.shortBy} more to place order in {zoneName}
               </p>
