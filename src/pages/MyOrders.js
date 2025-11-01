@@ -284,7 +284,7 @@ const MyOrders = () => {
 
         <div className="container mx-auto px-4 py-4 pb-32">
           {/* Order Type Tabs - Enhanced with better mobile UX */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-1.5 mb-4 shadow-lg border border-gray-200/50">
+          {/* <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-1.5 mb-4 shadow-lg border border-gray-200/50">
             <div className="flex">
               {[
                 { key: 'all', label: 'All', count: orders.length, emoji: '📦' },
@@ -312,7 +312,37 @@ const MyOrders = () => {
                 </button>
               ))}
             </div>
-          </div>
+          </div> */}
+          {/* Order Type Tabs - Reduced Height */}
+<div className="bg-white/80 backdrop-blur-lg rounded-xl p-1 mb-4 shadow-sm border border-gray-200/50">
+  <div className="flex">
+    {[
+      { key: 'all', label: 'All', count: orders.length, emoji: '📦' },
+      { key: 'food', label: 'Food', count: foodOrdersCount, emoji: '🍽️' },
+      { key: 'grocery', label: 'Grocery', count: groceryOrdersCount, emoji: '🛒' }
+    ].map((tab) => (
+      <button
+        key={tab.key}
+        className={`flex-1 py-2 px-2 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 work-sans-medium ${
+          orderTypeFilter === tab.key
+            ? 'bg-orange-500 text-white shadow-sm'
+            : 'text-gray-600 hover:bg-gray-50'
+        }`}
+        onClick={() => setOrderTypeFilter(tab.key)}
+      >
+        <span className="text-sm">{tab.emoji}</span>
+        <span className="text-xs">{tab.label}</span>
+        <span className={`px-1.5 py-0.5 rounded-full text-xs work-sans-medium ${
+          orderTypeFilter === tab.key 
+            ? 'bg-white/20 text-white' 
+            : 'bg-gray-100 text-gray-600'
+        }`}>
+          {tab.count}
+        </span>
+      </button>
+    ))}
+  </div>
+</div>
 
           {/* Status Filter - Improved Mobile Design */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 mb-4 shadow-lg border border-gray-200/50">

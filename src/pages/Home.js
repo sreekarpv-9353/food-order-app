@@ -214,9 +214,9 @@ const Home = () => {
           </div>
 
           {/* Tabs - Mobile Optimized */}
-          <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm border border-gray-100">
+          {/* <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm border border-gray-100">
             <button
-              className={`flex-1 py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 work-sans-medium ${
+              className={`flex-1 py-1 px-2 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2 work-sans-medium ${
                 activeTab === 'food'
                   ? 'bg-orange-500 text-white shadow-sm'
                   : 'text-gray-600 hover:bg-gray-50'
@@ -236,6 +236,31 @@ const Home = () => {
             >
               <span className="text-lg">🛒</span>
               <span className="text-sm">Grocery</span>
+            </button>
+          </div> */}
+          {/* Tabs - Reduced Height */}
+          <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm border border-gray-100">
+            <button
+              className={`flex-1 py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 work-sans-medium ${
+                activeTab === 'food'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveTab('food')}
+            >
+              <span className="text-sm">🍽️</span>
+              <span className="text-xs">Food</span>
+            </button>
+            <button
+              className={`flex-1 py-2 px-3 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 work-sans-medium ${
+                activeTab === 'grocery'
+                  ? 'bg-orange-500 text-white shadow-sm'
+                  : 'text-gray-600 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveTab('grocery')}
+            >
+              <span className="text-sm">🛒</span>
+              <span className="text-xs">Grocery</span>
             </button>
           </div>
 
