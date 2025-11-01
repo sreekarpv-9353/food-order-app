@@ -347,55 +347,55 @@ const MyOrders = () => {
 
           {/* Status Filter - Improved Mobile Design */}
           {/* Status Filter - Reduced Height */}
-<div className="bg-white/80 backdrop-blur-lg rounded-xl p-3 mb-4 shadow-sm border border-gray-200/50">
-  <div className="flex items-center justify-between">
-    <div className="flex items-center space-x-2">
-      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-      </svg>
-      <h3 className="work-sans-medium text-gray-900 text-xs">Filter by Status</h3>
-    </div>
-    <button
-      onClick={() => setShowStatusFilters(!showStatusFilters)}
-      className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2.5 py-1 rounded-lg text-xs work-sans-medium transition-all duration-200 hover:shadow active:scale-95"
-    >
-      {showStatusFilters ? 'Hide' : 'Show'}
-    </button>
-  </div>
-  
-  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
-    showStatusFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-  }`}>
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
-      {[
-        { key: 'all', label: 'All', icon: '📋' },
-        { key: 'pending', label: 'Pending', icon: '⏳' },
-        { key: 'confirmed', label: 'Confirmed', icon: '✅' },
-        { key: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
-        { key: 'ready', label: 'Ready', icon: '📦' },
-        { key: 'out-for-delivery', label: 'Out for Delivery', icon: '🚚' },
-        { key: 'delivered', label: 'Delivered', icon: '🎉' },
-        { key: 'cancelled', label: 'Cancelled', icon: '❌' }
-      ].map((status) => (
-        <button
-          key={status.key}
-          className={`p-2 rounded-lg transition-all duration-200 flex flex-col items-center space-y-1 text-xs border work-sans-medium ${
-            filter === status.key
-              ? 'bg-orange-50 border-orange-300 text-orange-700'
-              : 'bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50'
-          }`}
-          onClick={() => {
-            setFilter(status.key);
-            setShowStatusFilters(false);
-          }}
-        >
-          <span className="text-base">{status.icon}</span>
-          <span>{status.label}</span>
-        </button>
-      ))}
-    </div>
-  </div>
-</div>
+          {/* <div className="bg-white/80 backdrop-blur-lg rounded-xl p-3 mb-4 shadow-sm border border-gray-200/50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+                <h3 className="work-sans-medium text-gray-900 text-xs">Filter by Status</h3>
+              </div>
+              <button
+                onClick={() => setShowStatusFilters(!showStatusFilters)}
+                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2.5 py-1 rounded-lg text-xs work-sans-medium transition-all duration-200 hover:shadow active:scale-95"
+              >
+                {showStatusFilters ? 'Hide' : 'Show'}
+              </button>
+            </div>
+            
+            <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+              showStatusFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+            }`}>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                {[
+                  { key: 'all', label: 'All', icon: '📋' },
+                  { key: 'pending', label: 'Pending', icon: '⏳' },
+                  { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+                  { key: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
+                  { key: 'ready', label: 'Ready', icon: '📦' },
+                  { key: 'out-for-delivery', label: 'Out for Delivery', icon: '🚚' },
+                  { key: 'delivered', label: 'Delivered', icon: '🎉' },
+                  { key: 'cancelled', label: 'Cancelled', icon: '❌' }
+                ].map((status) => (
+                  <button
+                    key={status.key}
+                    className={`p-2 rounded-lg transition-all duration-200 flex flex-col items-center space-y-1 text-xs border work-sans-medium ${
+                      filter === status.key
+                        ? 'bg-orange-50 border-orange-300 text-orange-700'
+                        : 'bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50'
+                    }`}
+                    onClick={() => {
+                      setFilter(status.key);
+                      setShowStatusFilters(false);
+                    }}
+                  >
+                    <span className="text-base">{status.icon}</span>
+                    <span>{status.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div> */}
 
           {/* Loading State - Enhanced */}
           {(loading && orders.length === 0) && (
