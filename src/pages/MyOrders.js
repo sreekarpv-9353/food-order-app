@@ -246,41 +246,42 @@ const MyOrders = () => {
       
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100/50 safe-area-bottom work-sans">
         {/* Header */}
-        <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-40">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-2 rounded-xl shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                  </svg>
-                </div>
-                <div>
-                  <h1 className="text-xl work-sans-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                    My Orders
-                  </h1>
-                  <p className="text-sm text-gray-500 mt-0.5 work-sans-medium">
-                    {filteredOrders.length} of {orders.length} orders
-                  </p>
-                </div>
+        {/* Header - Reduced Height */}
+      {/* <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-40">
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-1.5 rounded-lg">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
               </div>
-              
-              <button
-                onClick={handleRefresh}
-                disabled={refreshing || loading}
-                className="bg-white border border-gray-200 p-3 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 work-sans-medium"
-              >
-                {refreshing ? (
-                  <div className="w-5 h-5 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                )}
-              </button>
+              <div>
+                <h1 className="text-lg work-sans-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  My Orders
+                </h1>
+                <p className="text-xs text-gray-500 mt-0.5 work-sans-medium">
+                  {filteredOrders.length} of {orders.length} orders
+                </p>
+              </div>
             </div>
+            
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing || loading}
+              className="bg-white border border-gray-200 p-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 work-sans-medium"
+            >
+              {refreshing ? (
+                <div className="w-4 h-4 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
+      </div> */}
 
         <div className="container mx-auto px-4 py-4 pb-32">
           {/* Order Type Tabs - Enhanced with better mobile UX */}
@@ -314,86 +315,87 @@ const MyOrders = () => {
             </div>
           </div> */}
           {/* Order Type Tabs - Reduced Height */}
-<div className="bg-white/80 backdrop-blur-lg rounded-xl p-1 mb-4 shadow-sm border border-gray-200/50">
-  <div className="flex">
-    {[
-      { key: 'all', label: 'All', count: orders.length, emoji: '📦' },
-      { key: 'food', label: 'Food', count: foodOrdersCount, emoji: '🍽️' },
-      { key: 'grocery', label: 'Grocery', count: groceryOrdersCount, emoji: '🛒' }
-    ].map((tab) => (
-      <button
-        key={tab.key}
-        className={`flex-1 py-2 px-2 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 work-sans-medium ${
-          orderTypeFilter === tab.key
-            ? 'bg-orange-500 text-white shadow-sm'
-            : 'text-gray-600 hover:bg-gray-50'
-        }`}
-        onClick={() => setOrderTypeFilter(tab.key)}
-      >
-        <span className="text-sm">{tab.emoji}</span>
-        <span className="text-xs">{tab.label}</span>
-        <span className={`px-1.5 py-0.5 rounded-full text-xs work-sans-medium ${
-          orderTypeFilter === tab.key 
-            ? 'bg-white/20 text-white' 
-            : 'bg-gray-100 text-gray-600'
-        }`}>
-          {tab.count}
-        </span>
-      </button>
-    ))}
-  </div>
-</div>
-
-          {/* Status Filter - Improved Mobile Design */}
-          <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-4 mb-4 shadow-lg border border-gray-200/50">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center space-x-2">
-                <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-                </svg>
-                <h3 className="work-sans-semibold text-gray-900 text-sm">Filter by Status</h3>
-              </div>
-              <button
-                onClick={() => setShowStatusFilters(!showStatusFilters)}
-                className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-3 py-1.5 rounded-lg text-xs work-sans-semibold transition-all duration-200 hover:shadow-lg active:scale-95"
-              >
-                {showStatusFilters ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            
-            <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-              showStatusFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {[
-                  { key: 'all', label: 'All', icon: '📋' },
-                  { key: 'pending', label: 'Pending', icon: '⏳' },
-                  { key: 'confirmed', label: 'Confirmed', icon: '✅' },
-                  { key: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
-                  { key: 'ready', label: 'Ready', icon: '📦' },
-                  { key: 'out-for-delivery', label: 'Out for Delivery', icon: '🚚' },
-                  { key: 'delivered', label: 'Delivered', icon: '🎉' },
-                  { key: 'cancelled', label: 'Cancelled', icon: '❌' }
-                ].map((status) => (
-                  <button
-                    key={status.key}
-                    className={`p-3 rounded-xl transition-all duration-300 flex flex-col items-center space-y-2 text-xs border-2 work-sans-medium ${
-                      filter === status.key
-                        ? 'bg-gradient-to-br from-orange-50 to-orange-100 border-orange-300 text-orange-700 shadow-md'
-                        : 'bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50'
-                    }`}
-                    onClick={() => {
-                      setFilter(status.key);
-                      setShowStatusFilters(false);
-                    }}
-                  >
-                    <span className="text-lg">{status.icon}</span>
-                    <span>{status.label}</span>
-                  </button>
-                ))}
-              </div>
+          <div className="bg-white/80 backdrop-blur-lg rounded-xl p-1 mb-4 shadow-sm border border-gray-200/50">
+            <div className="flex">
+              {[
+                { key: 'all', label: 'All', count: orders.length, emoji: '📦' },
+                { key: 'food', label: 'Food', count: foodOrdersCount, emoji: '🍽️' },
+                { key: 'grocery', label: 'Grocery', count: groceryOrdersCount, emoji: '🛒' }
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  className={`flex-1 py-2 px-2 rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 work-sans-medium ${
+                    orderTypeFilter === tab.key
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setOrderTypeFilter(tab.key)}
+                >
+                  <span className="text-sm">{tab.emoji}</span>
+                  <span className="text-xs">{tab.label}</span>
+                  <span className={`px-1.5 py-0.5 rounded-full text-xs work-sans-medium ${
+                    orderTypeFilter === tab.key 
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
+
+          {/* Status Filter - Improved Mobile Design */}
+          {/* Status Filter - Reduced Height */}
+<div className="bg-white/80 backdrop-blur-lg rounded-xl p-3 mb-4 shadow-sm border border-gray-200/50">
+  <div className="flex items-center justify-between">
+    <div className="flex items-center space-x-2">
+      <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+      </svg>
+      <h3 className="work-sans-medium text-gray-900 text-xs">Filter by Status</h3>
+    </div>
+    <button
+      onClick={() => setShowStatusFilters(!showStatusFilters)}
+      className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-2.5 py-1 rounded-lg text-xs work-sans-medium transition-all duration-200 hover:shadow active:scale-95"
+    >
+      {showStatusFilters ? 'Hide' : 'Show'}
+    </button>
+  </div>
+  
+  <div className={`transition-all duration-300 ease-in-out overflow-hidden ${
+    showStatusFilters ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+  }`}>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+      {[
+        { key: 'all', label: 'All', icon: '📋' },
+        { key: 'pending', label: 'Pending', icon: '⏳' },
+        { key: 'confirmed', label: 'Confirmed', icon: '✅' },
+        { key: 'preparing', label: 'Preparing', icon: '👨‍🍳' },
+        { key: 'ready', label: 'Ready', icon: '📦' },
+        { key: 'out-for-delivery', label: 'Out for Delivery', icon: '🚚' },
+        { key: 'delivered', label: 'Delivered', icon: '🎉' },
+        { key: 'cancelled', label: 'Cancelled', icon: '❌' }
+      ].map((status) => (
+        <button
+          key={status.key}
+          className={`p-2 rounded-lg transition-all duration-200 flex flex-col items-center space-y-1 text-xs border work-sans-medium ${
+            filter === status.key
+              ? 'bg-orange-50 border-orange-300 text-orange-700'
+              : 'bg-white border-gray-200 text-gray-700 hover:border-orange-200 hover:bg-orange-50/50'
+          }`}
+          onClick={() => {
+            setFilter(status.key);
+            setShowStatusFilters(false);
+          }}
+        >
+          <span className="text-base">{status.icon}</span>
+          <span>{status.label}</span>
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
 
           {/* Loading State - Enhanced */}
           {(loading && orders.length === 0) && (
