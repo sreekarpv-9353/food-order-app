@@ -235,12 +235,12 @@ const handleEmailSupport = () => {
                       </p>
                     </div>
                   </div>
-                  <button
+                  {/* <button
                     onClick={handleCallSupport}
                     className="bg-green-600 text-white px-3 py-2 rounded-lg text-xs work-sans-semibold hover:bg-green-700 transition-all duration-200 active:scale-95"
                   >
                     Call Now
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* WhatsApp Support */}
@@ -252,14 +252,21 @@ const handleEmailSupport = () => {
                     <div>
                       <p className="font-semibold text-gray-900 text-xs work-sans-semibold">WhatsApp</p>
                       <p className="text-gray-600 text-xs work-sans-medium">Chat with us</p>
+                      <p className="text-gray-600 text-xs work-sans-medium">
+                        {formatPhoneForDisplay(customerSupport.phone)}
+                      </p>
+                       <div>
+                      {/* <p className="font-semibold text-gray-900 text-xs work-sans-semibold">Call Us</p> */}
+                      
+                    </div>
                     </div>
                   </div>
-                  <button
+                  {/* <button
                     onClick={handleWhatsApp}
                     className="bg-green-600 text-white px-3 py-2 rounded-lg text-xs work-sans-semibold hover:bg-green-700 transition-all duration-200 active:scale-95"
                   >
                     Message
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Email Support */}
@@ -270,19 +277,25 @@ const handleEmailSupport = () => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                     </div>
-                    <div>
+                    {/* <div>
                       <p className="font-semibold text-gray-900 text-xs work-sans-semibold">Email</p>
                       <p className="text-gray-600 text-xs work-sans-medium truncate max-w-[120px]">
                         {customerSupport.email}
                       </p>
-                    </div>
+                    </div> */}
+                    <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 text-xs work-sans-semibold">Email</p>
+                    <p className="text-gray-600 text-xs work-sans-medium break-words max-w-full">
+                      {customerSupport.email}
+                    </p>
                   </div>
-                  <button
+                  </div>
+                  {/* <button
                     onClick={handleEmailSupport}
                     className="bg-blue-600 text-white px-3 py-2 rounded-lg text-xs work-sans-semibold hover:bg-blue-700 transition-all duration-200 active:scale-95"
                   >
                     Email
-                  </button>
+                  </button> */}
                 </div>
 
                 {/* Support Hours */}
@@ -346,7 +359,7 @@ const handleEmailSupport = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200/60">
+          {/* <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-2xl p-5 border border-blue-200/60">
             <h3 className="text-base work-sans-bold text-gray-900 mb-4 text-center">Need More Help?</h3>
             <div className="grid grid-cols-1 gap-2">
               <button
@@ -364,7 +377,7 @@ const handleEmailSupport = () => {
                 <span>Email Issue</span>
               </button>
             </div>
-          </div>
+          </div> */}
 
           {/* Bottom Spacing for Mobile */}
           <div className="h-6"></div>
