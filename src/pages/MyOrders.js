@@ -415,43 +415,43 @@ const MyOrders = () => {
                 >
                   {/* Order Header - Enhanced */}
                   <div className="p-4 border-b border-gray-200/60">
-                    {/* Top Row: Order Info and Track Button */}
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-start space-x-3 flex-1 min-w-0">
-                        <div className={`p-2 rounded-xl ${
-                          (order.orderType || order.type) === 'grocery' 
-                            ? 'bg-emerald-100 text-emerald-600' 
-                            : 'bg-orange-100 text-orange-600'
-                        }`}>
-                          <span className="text-lg">{getOrderTypeIcon(order)}</span>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h3 className="work-sans-bold text-gray-900 text-sm truncate">
-                              Order #{order.id?.slice(-8) || 'N/A'}
-                            </h3>
-                            <span className={`px-2 py-1 rounded-full text-xs work-sans-semibold ${getOrderTypeBadge(order)}`}>
-                              {getOrderTypeLabel(order)}
-                            </span>
-                          </div>
-                          <p className="text-gray-500 text-xs flex items-center space-x-1 work-sans-medium">
-                            <span>🕒</span>
-                            <span>{formatDate(order.createdAt)}</span>
-                          </p>
-                        </div>
+                    {/* Top Row: Order Info Only */}
+                    <div className="flex items-start space-x-3 mb-3">
+                      <div className={`p-2 rounded-xl ${
+                        (order.orderType || order.type) === 'grocery' 
+                          ? 'bg-emerald-100 text-emerald-600' 
+                          : 'bg-orange-100 text-orange-600'
+                      }`}>
+                        <span className="text-lg">{getOrderTypeIcon(order)}</span>
                       </div>
-                      
-                      {/* Track Button - Positioned correctly */}
-                      {canTrackOrder && (
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h3 className="work-sans-bold text-gray-900 text-sm truncate">
+                            Order #{order.id?.slice(-8) || 'N/A'}
+                          </h3>
+                          <span className={`px-2 py-1 rounded-full text-xs work-sans-semibold ${getOrderTypeBadge(order)}`}>
+                            {getOrderTypeLabel(order)}
+                          </span>
+                        </div>
+                        <p className="text-gray-500 text-xs flex items-center space-x-1 work-sans-medium">
+                          <span>🕒</span>
+                          <span>{formatDate(order.createdAt)}</span>
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Second Row: Track Button - Right Aligned */}
+                    {canTrackOrder && (
+                      <div className="flex justify-end mb-3">
                         <button
                           onClick={() => navigate(`/order-tracking/${order.id}`)}
-                          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs work-sans-semibold hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center space-x-2 ml-3 flex-shrink-0"
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs work-sans-semibold hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center space-x-2"
                         >
                           <span>🚚</span>
-                          <span>Track</span>
+                          <span>Track Order</span>
                         </button>
-                      )}
-                    </div>
+                      </div>
+                    )}
 
                     {/* Restaurant Info for Food Orders */}
                     {order.restaurant && (
