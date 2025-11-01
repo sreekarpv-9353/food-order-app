@@ -361,12 +361,21 @@ const Cart = () => {
       
       // Clear cart and navigate on success
       dispatch(clearCart());
-      navigate('/my-orders', { 
-        state: { 
-          orderSuccess: true,
-          orderId: result.id 
-        }
-      });
+      // navigate('/my-orders', { 
+      //   state: { 
+      //     orderSuccess: true,
+      //     orderId: result.id 
+      //   }
+      // });
+      navigate('/order-success', { 
+      state: { 
+        orderSuccess: true,
+        orderId: result.id,
+        orderType: type,
+        grandTotal: grandTotal,
+        estimatedTime: deliveryTime
+      }
+    });
       
     } catch (error) {
       console.error('❌ [Cart] Order placement failed:', error);

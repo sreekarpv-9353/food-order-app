@@ -282,7 +282,7 @@ const MyOrders = () => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-4 pb-32"> {/* Increased bottom padding */}
+        <div className="container mx-auto px-4 py-4 pb-32">
           {/* Order Type Tabs - Enhanced with better mobile UX */}
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl p-1.5 mb-4 shadow-lg border border-gray-200/50">
             <div className="flex">
@@ -406,6 +406,7 @@ const MyOrders = () => {
           <div className="space-y-4">
             {filteredOrders.map((order) => {
               const paymentInfo = getPaymentMethodDisplay(order);
+              const canTrackOrder = order.status !== 'delivered' && order.status !== 'cancelled';
               
               return (
                 <div
@@ -414,6 +415,7 @@ const MyOrders = () => {
                 >
                   {/* Order Header - Enhanced */}
                   <div className="p-4 border-b border-gray-200/60">
+                    {/* Top Row: Order Info and Track Button */}
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-start space-x-3 flex-1 min-w-0">
                         <div className={`p-2 rounded-xl ${
@@ -436,29 +438,40 @@ const MyOrders = () => {
                             <span>🕒</span>
                             <span>{formatDate(order.createdAt)}</span>
                           </p>
-                          
-                          {/* Restaurant Info for Food Orders */}
-                          {order.restaurant && (
-                            <div className="flex items-center space-x-2 mt-2">
-                              <div className="bg-blue-50 px-2 py-1 rounded-lg flex items-center space-x-1">
-                                <span className="text-blue-600 text-xs">🏪</span>
-                                <span className="text-blue-700 text-xs work-sans-medium truncate max-w-[120px]">
-                                  {order.restaurant.name}
-                                </span>
-                              </div>
-                              {order.restaurant.rating && (
-                                <div className="bg-amber-50 px-2 py-1 rounded-lg flex items-center space-x-1">
-                                  <span className="text-amber-600 text-xs">⭐</span>
-                                  <span className="text-amber-700 text-xs work-sans-medium">
-                                    {order.restaurant.rating}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          )}
                         </div>
                       </div>
+                      
+                      {/* Track Button - Positioned correctly */}
+                      {canTrackOrder && (
+                        <button
+                          onClick={() => navigate(`/order-tracking/${order.id}`)}
+                          className="bg-gradient-to-r from-blue-500 to-blue-600 text-white px-4 py-2 rounded-xl text-xs work-sans-semibold hover:shadow-lg transition-all duration-200 active:scale-95 flex items-center space-x-2 ml-3 flex-shrink-0"
+                        >
+                          <span>🚚</span>
+                          <span>Track</span>
+                        </button>
+                      )}
                     </div>
+
+                    {/* Restaurant Info for Food Orders */}
+                    {order.restaurant && (
+                      <div className="flex items-center space-x-2 mb-3">
+                        <div className="bg-blue-50 px-2 py-1 rounded-lg flex items-center space-x-1">
+                          <span className="text-blue-600 text-xs">🏪</span>
+                          <span className="text-blue-700 text-xs work-sans-medium truncate max-w-[120px]">
+                            {order.restaurant.name}
+                          </span>
+                        </div>
+                        {order.restaurant.rating && (
+                          <div className="bg-amber-50 px-2 py-1 rounded-lg flex items-center space-x-1">
+                            <span className="text-amber-600 text-xs">⭐</span>
+                            <span className="text-amber-700 text-xs work-sans-medium">
+                              {order.restaurant.rating}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     {/* Status with Progress */}
                     <div className="flex items-center justify-between mb-3">
@@ -518,8 +531,8 @@ const MyOrders = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Expandable Section - FIXED: Better mobile support */}
+                   
+                  {/* Expandable Section */}
                   <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
                     expandedOrder === order.id ? 'max-h-[1200px] opacity-100' : 'max-h-0 opacity-0'
                   }`}>
@@ -622,8 +635,8 @@ const MyOrders = () => {
                       </div>
                     </div>
 
-                    {/* Payment Information Section - FIXED: Better spacing for mobile */}
-                    <div className="p-4 pb-6"> {/* Added extra bottom padding */}
+                    {/* Payment Information Section */}
+                    <div className="p-4 pb-6">
                       <h4 className="work-sans-semibold text-gray-900 text-sm mb-3 flex items-center space-x-2">
                         <span>💳</span>
                         <span>Payment Information</span>
@@ -655,7 +668,7 @@ const MyOrders = () => {
                     </div>
                   </div>
 
-                  {/* Expand/Collapse Button - FIXED: Better positioning */}
+                  {/* Expand/Collapse Button */}
                   <div className="sticky bottom-0 bg-white border-t border-gray-200/60">
                     <button
                       onClick={() => toggleOrderExpand(order.id)}
@@ -717,7 +730,7 @@ const MyOrders = () => {
 
           {/* Last Refreshed Info */}
           {lastRefreshed && filteredOrders.length > 0 && (
-            <div className="text-center pt-8 pb-6"> {/* Increased bottom padding */}
+            <div className="text-center pt-8 pb-6">
               <p className="text-xs text-gray-500 bg-white/80 backdrop-blur-lg inline-block px-4 py-2 rounded-full border border-gray-200/60 work-sans-medium">
                 🔄 Updated {new Date(lastRefreshed).toLocaleTimeString('en-US', { 
                   hour: '2-digit', 

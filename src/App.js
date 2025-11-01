@@ -19,6 +19,8 @@ import RestaurantDetail from './pages/RestaurantDetail';
 import Cart from './pages/Cart';
 import MyOrders from './pages/MyOrders';
 import FAQ from './pages/FAQ';
+import OrderSuccess from './pages/OrderSuccess';
+import OrderTracking from './pages/OrderTracking';
 
 import './App.css';
 
@@ -134,6 +136,8 @@ function App() {
               path="*" 
               element={user ? <Navigate to="/" replace /> : <Navigate to="/login" replace />} 
             />
+            <Route path="/order-success" element={<OrderSuccess />} />
+            <Route path="/order-tracking/:orderId" element={<OrderTracking />} />
           </Routes>
         </main>
       </div>
