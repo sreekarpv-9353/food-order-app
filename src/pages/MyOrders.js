@@ -494,14 +494,14 @@ const MyOrders = () => {
                             {order.restaurant.name}
                           </span>
                         </div>
-                        {order.restaurant.rating && (
+                        {/* {order.restaurant.rating && (
                           <div className="bg-amber-50 px-2 py-1 rounded-lg flex items-center space-x-1">
                             <span className="text-amber-600 text-xs">⭐</span>
                             <span className="text-amber-700 text-xs work-sans-medium">
                               {order.restaurant.rating}
                             </span>
                           </div>
-                        )}
+                        )} */}
                       </div>
                     )}
 

@@ -276,7 +276,7 @@ const BottomBar = () => {
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
-          <button
+          {/* <button
             onClick={closeSideMenu}
             className="absolute top-4 left-4 p-2 text-gray-500 hover:text-gray-700 transition-colors z-10"
             aria-label="Close menu"
@@ -284,7 +284,7 @@ const BottomBar = () => {
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
-          </button>
+          </button> */}
 
           {/* Menu Header with Profile */}
           <div className={`${colors.primary} text-white p-4 pt-12 safe-area-top`}>
