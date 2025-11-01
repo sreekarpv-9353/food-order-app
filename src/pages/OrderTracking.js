@@ -220,11 +220,12 @@ const OrderTracking = () => {
     return statusProgress[currentOrder?.status] || 0;
   };
 
+  // Fixed address formatting - don't trim, let it wrap naturally
   const formatAddress = (address) => {
     if (!address) return 'No address provided';
     
     if (typeof address === 'string') {
-      return address.length > 40 ? `${address.substring(0, 40)}...` : address;
+      return address;
     }
     
     if (typeof address === 'object') {
@@ -236,8 +237,7 @@ const OrderTracking = () => {
         address.zipCode
       ].filter(part => part && part.trim() !== '');
       
-      const fullAddress = parts.join(', ');
-      return fullAddress.length > 40 ? `${fullAddress.substring(0, 40)}...` : fullAddress;
+      return parts.join(', ');
     }
     
     return 'Address not available';
@@ -363,10 +363,11 @@ const OrderTracking = () => {
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 safe-area-bottom work-sans">
-        {/* Mobile-Optimized Header */}
+        {/* Fixed Mobile-Optimized Header */}
         <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
           <div className="px-4 py-3">
-            <div className="flex items-center justify-between">
+            {/* First Row: Back button and Track Order title */}
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <button
                   onClick={() => navigate(-1)}
@@ -378,9 +379,6 @@ const OrderTracking = () => {
                 </button>
                 <div className="flex-1 min-w-0">
                   <h1 className="text-lg work-sans-medium text-gray-900 truncate">Track Order</h1>
-                  <p className="text-xs work-sans-medium text-gray-500 truncate">
-                    #{currentOrder.id?.slice(-8).toUpperCase()}
-                  </p>
                 </div>
               </div>
               
@@ -398,10 +396,19 @@ const OrderTracking = () => {
                     </svg>
                   )}
                 </button>
-                
-                <div className={`px-3 py-1 rounded-full text-xs work-sans-medium border ${getStatusBadgeColor(currentOrder.status)}`}>
-                  {getStatusDisplayText(currentOrder.status)}
-                </div>
+              </div>
+            </div>
+
+            {/* Second Row: Order ID and Status Badge */}
+            <div className="flex items-center justify-between">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs work-sans-medium text-gray-500">
+                  #{currentOrder.id?.slice(-8).toUpperCase()}
+                </p>
+              </div>
+              
+              <div className={`px-3 py-1 rounded-full text-xs work-sans-medium border ${getStatusBadgeColor(currentOrder.status)}`}>
+                {getStatusDisplayText(currentOrder.status)}
               </div>
             </div>
           </div>
@@ -637,29 +644,30 @@ const OrderTracking = () => {
                 </div>
               </div>
 
-              {/* Delivery Information */}
+              {/* Delivery Information - Fixed Address Display */}
               <div className="bg-gray-50 rounded-lg p-3">
                 <h4 className="text-sm work-sans-medium text-gray-900 mb-2 flex items-center space-x-1">
                   <span>📍</span>
                   <span>Delivery Details</span>
                 </h4>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <div>
                     <p className="text-xs work-sans-medium text-gray-600 mb-1">Delivery Address</p>
-                    <p className="text-sm work-sans-medium text-gray-900">
+                    {/* Fixed: Address now wraps naturally without trimming */}
+                    <p className="text-sm work-sans-medium text-gray-900 break-words leading-relaxed">
                       {formatAddress(currentOrder.deliveryAddress)}
                     </p>
                   </div>
                   
                   {currentOrder.deliveryZone && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-2">
                       <span className="text-xs work-sans-medium text-gray-600">Delivery Zone</span>
                       <span className="text-xs work-sans-medium bg-gray-100 px-2 py-1 rounded">{currentOrder.deliveryZone}</span>
                     </div>
                   )}
                   
                   {currentOrder.deliveryAddress?.phone && (
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center pt-2">
                       <span className="text-xs work-sans-medium text-gray-600">Contact Phone</span>
                       <span className="text-sm work-sans-medium text-gray-900">{currentOrder.deliveryAddress.phone}</span>
                     </div>
@@ -696,7 +704,7 @@ const OrderTracking = () => {
           </div>
 
           {/* Support Section */}
-          <div className="text-center">
+          {/* <div className="text-center">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
               <h3 className="text-sm work-sans-medium text-gray-900 mb-2">Need Help?</h3>
               <p className="text-xs work-sans-medium text-gray-600 mb-3">
@@ -713,7 +721,7 @@ const OrderTracking = () => {
                 </button>
               </div>
             </div>
-          </div>
+          </div> */}
 
           {/* Last Updated Footer */}
           {lastUpdated && (
