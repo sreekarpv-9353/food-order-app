@@ -18,7 +18,6 @@ const OrderTracking = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [driverLocation, setDriverLocation] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch order data from Firebase in real-time
@@ -52,11 +51,6 @@ const OrderTracking = () => {
             
             setCurrentOrder(orderData);
             setLastUpdated(new Date());
-            
-            // Update driver location if available
-            if (orderData.driverLocation) {
-              setDriverLocation(orderData.driverLocation);
-            }
           } else {
             setError('Order not found in database');
           }
@@ -159,9 +153,6 @@ const OrderTracking = () => {
 
   // Corrected status mapping and step index calculation
   const getCurrentStepIndex = (status) => {
-    const steps = getStatusSteps(currentOrder?.type);
-    
-    // Map status to step index
     const statusToIndex = {
       'pending': 0,
       'confirmed': 1,
@@ -176,27 +167,6 @@ const OrderTracking = () => {
   };
 
   // Enhanced status color mapping
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'delivered': 
-        return 'bg-emerald-500 text-white border-emerald-600';
-      case 'out-for-delivery': 
-        return 'bg-blue-500 text-white border-blue-600';
-      case 'ready': 
-        return 'bg-purple-500 text-white border-purple-600';
-      case 'preparing': 
-        return 'bg-orange-500 text-white border-orange-600';
-      case 'confirmed': 
-        return 'bg-green-500 text-white border-green-600';
-      case 'pending':
-        return 'bg-gray-500 text-white border-gray-600';
-      case 'cancelled':
-        return 'bg-red-500 text-white border-red-600';
-      default: 
-        return 'bg-gray-500 text-white border-gray-600';
-    }
-  };
-
   const getStatusBadgeColor = (status) => {
     switch (status) {
       case 'delivered': 
@@ -254,7 +224,7 @@ const OrderTracking = () => {
     if (!address) return 'No address provided';
     
     if (typeof address === 'string') {
-      return address;
+      return address.length > 40 ? `${address.substring(0, 40)}...` : address;
     }
     
     if (typeof address === 'object') {
@@ -266,7 +236,8 @@ const OrderTracking = () => {
         address.zipCode
       ].filter(part => part && part.trim() !== '');
       
-      return parts.join(', ');
+      const fullAddress = parts.join(', ');
+      return fullAddress.length > 40 ? `${fullAddress.substring(0, 40)}...` : fullAddress;
     }
     
     return 'Address not available';
@@ -301,18 +272,15 @@ const OrderTracking = () => {
   // Loading State
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 safe-area-bottom work-sans">
+      <div className="min-h-screen bg-gray-50 safe-area-bottom work-sans">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[60vh]">
-            <div className="relative">
-              <div className="w-20 h-20 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin mb-6"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full animate-pulse"></div>
-              </div>
+          <div className="flex flex-col items-center justify-center min-h-[70vh]">
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
             </div>
-            <h3 className="text-xl work-sans-bold text-gray-900 mb-3">Loading Order Details</h3>
-            <p className="text-gray-600 text-sm work-sans-medium text-center max-w-sm">
-              Fetching real-time tracking information for your order...
+            <h3 className="text-lg work-sans-medium text-gray-900 mb-2 text-center">Loading Order Details</h3>
+            <p className="text-sm work-sans-medium text-gray-600 text-center max-w-xs">
+              Fetching real-time tracking information...
             </p>
           </div>
         </div>
@@ -323,26 +291,26 @@ const OrderTracking = () => {
   // Error State
   if (error || !currentOrder) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 safe-area-bottom work-sans">
+      <div className="min-h-screen bg-gray-50 safe-area-bottom work-sans">
         <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-            <div className="bg-red-100 p-6 rounded-2xl mb-6">
-              <span className="text-6xl">❌</span>
+          <div className="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+            <div className="bg-red-100 p-5 rounded-2xl mb-6">
+              <span className="text-4xl">❌</span>
             </div>
-            <h2 className="text-2xl work-sans-bold text-gray-900 mb-3">Order Not Found</h2>
-            <p className="text-gray-600 text-sm mb-8 work-sans-medium max-w-md">
-              {error || "We couldn't find the order you're looking for. It may have been cancelled or doesn't exist."}
+            <h2 className="text-xl work-sans-medium text-gray-900 mb-3">Order Not Found</h2>
+            <p className="text-sm work-sans-medium text-gray-600 mb-8 max-w-md">
+              {error || "We couldn't find the order you're looking for."}
             </p>
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col gap-3 w-full max-w-xs">
               <button
                 onClick={() => navigate('/my-orders')}
-                className="bg-orange-500 text-white px-8 py-4 rounded-xl hover:bg-orange-600 transition-colors work-sans-semibold text-lg"
+                className="bg-orange-500 text-white px-6 py-4 rounded-xl hover:bg-orange-600 transition-colors work-sans-medium text-base w-full"
               >
                 View All Orders
               </button>
               <button
                 onClick={handleRefresh}
-                className="bg-white border border-gray-300 text-gray-700 px-8 py-4 rounded-xl hover:bg-gray-50 transition-colors work-sans-semibold text-lg"
+                className="bg-white border border-gray-300 text-gray-700 px-6 py-4 rounded-xl hover:bg-gray-50 transition-colors work-sans-medium text-base w-full"
               >
                 Try Again
               </button>
@@ -361,7 +329,7 @@ const OrderTracking = () => {
   return (
     <>
       <Helmet>
-        <title>Track Order #{currentOrder.id?.slice(-8)} | Food Delivery</title>
+        <title>Track Order #{currentOrder.id?.slice(-8)}</title>
         <link
           href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&display=swap"
           rel="stylesheet"
@@ -370,6 +338,7 @@ const OrderTracking = () => {
           {`
             .work-sans {
               font-family: 'Work Sans', sans-serif;
+              font-weight: 400;
             }
             .work-sans-medium {
               font-family: 'Work Sans', sans-serif;
@@ -386,48 +355,51 @@ const OrderTracking = () => {
             .safe-area-bottom {
               padding-bottom: env(safe-area-inset-bottom);
             }
+            .container {
+              max-width: 100%;
+            }
           `}
         </style>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 safe-area-bottom work-sans">
-        {/* Enhanced Header */}
-        <div className="bg-white/90 backdrop-blur-lg border-b border-gray-200/60 sticky top-0 z-50 shadow-sm">
-          <div className="container mx-auto px-4 py-4">
+      <div className="min-h-screen bg-gray-50 safe-area-bottom work-sans">
+        {/* Mobile-Optimized Header */}
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+          <div className="px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3 flex-1 min-w-0">
                 <button
                   onClick={() => navigate(-1)}
-                  className="p-2 hover:bg-gray-100 rounded-xl transition-colors active:scale-95 flex-shrink-0"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors active:scale-95 flex-shrink-0"
                 >
-                  <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                   </svg>
                 </button>
                 <div className="flex-1 min-w-0">
-                  <h1 className="text-xl work-sans-bold text-gray-900 truncate">Track Order</h1>
-                  <p className="text-sm text-gray-500 work-sans-medium truncate">
+                  <h1 className="text-lg work-sans-medium text-gray-900 truncate">Track Order</h1>
+                  <p className="text-xs work-sans-medium text-gray-500 truncate">
                     #{currentOrder.id?.slice(-8).toUpperCase()}
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-2">
                 <button
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="bg-white border border-gray-200 p-3 rounded-xl hover:bg-gray-50 disabled:opacity-50 transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 work-sans-medium flex-shrink-0"
+                  className="bg-white border border-gray-200 p-2 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-all duration-200 active:scale-95 work-sans-medium flex-shrink-0"
                 >
                   {refreshing ? (
-                    <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
                   ) : (
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                   )}
                 </button>
                 
-                <div className={`px-3 py-1.5 rounded-full text-xs work-sans-semibold border ${getStatusBadgeColor(currentOrder.status)}`}>
+                <div className={`px-3 py-1 rounded-full text-xs work-sans-medium border ${getStatusBadgeColor(currentOrder.status)}`}>
                   {getStatusDisplayText(currentOrder.status)}
                 </div>
               </div>
@@ -435,82 +407,71 @@ const OrderTracking = () => {
           </div>
         </div>
 
-        <div className="container mx-auto px-4 py-6 pb-24">
-          {/* Enhanced Order Summary Card */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/60 p-6 mb-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start space-x-4 flex-1 min-w-0">
-                <div className={`p-4 rounded-2xl ${
-                  currentOrder.type === 'grocery' 
-                    ? 'bg-gradient-to-br from-emerald-500 to-emerald-600' 
-                    : 'bg-gradient-to-br from-orange-500 to-orange-600'
-                }`}>
-                  <span className="text-2xl text-white">
-                    {currentOrder.type === 'grocery' ? '🛒' : '🍽️'}
-                  </span>
+        <div className="px-4 py-4 pb-6">
+          {/* Mobile-Optimized Order Summary Card */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+            <div className="flex items-start space-x-3 mb-4">
+              <div className={`p-3 rounded-xl ${
+                currentOrder.type === 'grocery' 
+                  ? 'bg-emerald-100 text-emerald-600' 
+                  : 'bg-orange-100 text-orange-600'
+              }`}>
+                <span className="text-lg">
+                  {currentOrder.type === 'grocery' ? '🛒' : '🍽️'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2 mb-1">
+                  <h3 className="text-base work-sans-medium text-gray-900">
+                    {currentOrder.type === 'grocery' ? 'Grocery Order' : 'Food Order'}
+                  </h3>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="work-sans-bold text-gray-900 text-lg">
-                      {currentOrder.type === 'grocery' ? 'Grocery Order' : 'Food Order'}
-                    </h3>
-                    <span className={`px-2 py-1 rounded-full text-xs work-sans-semibold ${
-                      currentOrder.type === 'grocery' 
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                        : 'bg-orange-50 text-orange-700 border border-orange-200'
-                    }`}>
-                      {currentOrder.type === 'grocery' ? 'Grocery' : 'Food'}
-                    </span>
-                  </div>
-                  <p className="text-gray-600 text-sm work-sans-medium">
-                    {currentOrder.items?.length || 0} {currentOrder.items?.length === 1 ? 'item' : 'items'} • 
-                    ₹{currentOrder.pricing?.grandTotal?.toFixed(2) || '0.00'}
-                  </p>
-                  
-                  {/* Restaurant Info for Food Orders */}
-                  {currentOrder.restaurant && (
-                    <div className="flex items-center space-x-2 mt-3">
-                      <div className="bg-blue-50 px-3 py-1.5 rounded-lg flex items-center space-x-2">
-                        <span className="text-blue-600 text-sm">🏪</span>
-                        <span className="text-blue-700 text-sm work-sans-medium truncate max-w-[140px]">
-                          {currentOrder.restaurant.name}
-                        </span>
-                      </div>
+                <p className="text-sm work-sans-medium text-gray-600">
+                  {currentOrder.items?.length || 0} {currentOrder.items?.length === 1 ? 'item' : 'items'} • 
+                  ₹{currentOrder.pricing?.grandTotal?.toFixed(2) || '0.00'}
+                </p>
+                
+                {/* Restaurant Info for Food Orders */}
+                {currentOrder.restaurant && (
+                  <div className="flex items-center space-x-2 mt-2">
+                    <div className="bg-blue-50 px-2 py-1 rounded-lg flex items-center space-x-1">
+                      <span className="text-blue-600 text-xs">🏪</span>
+                      <span className="text-blue-700 text-xs work-sans-medium truncate max-w-[120px]">
+                        {currentOrder.restaurant.name}
+                      </span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Enhanced Progress Bar */}
+            {/* Progress Bar */}
             <div className="mb-4">
-              <div className="flex justify-between text-sm work-sans-medium mb-2">
+              <div className="flex justify-between text-xs work-sans-medium mb-2">
                 <span className="text-gray-600">Order Progress</span>
-                <span className="text-gray-900">{progressPercentage}% • Step {currentStepIndex + 1} of {statusSteps.length}</span>
+                <span className="text-gray-900">{progressPercentage}%</span>
               </div>
-              <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className="bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 h-3 rounded-full transition-all duration-1000 ease-out shadow-lg shadow-blue-500/25"
+                  className="bg-gradient-to-r from-green-500 to-blue-500 h-2 rounded-full transition-all duration-1000 ease-out"
                   style={{ width: `${progressPercentage}%` }}
                 ></div>
               </div>
             </div>
 
-            {/* Enhanced Estimated Time */}
-            <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+            {/* Estimated Time */}
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-white/20 p-2 rounded-xl">
-                    <span className="text-xl">⏱️</span>
-                  </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-600 text-lg">⏱️</span>
                   <div>
-                    <p className="work-sans-semibold text-white/90 text-sm">Estimated Delivery</p>
-                    <p className="work-sans-bold text-xl">{estimatedDelivery}</p>
+                    <p className="text-blue-800 work-sans-medium text-xs">Estimated Delivery</p>
+                    <p className="text-blue-700 work-sans-medium text-sm">{estimatedDelivery}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="work-sans-semibold text-white/90 text-sm">Current Status</p>
-                  <p className="work-sans-bold text-lg">
+                  <p className="text-blue-800 work-sans-medium text-xs">Status</p>
+                  <p className="text-blue-700 work-sans-medium text-sm">
                     {getStatusDisplayText(currentOrder.status)}
                   </p>
                 </div>
@@ -527,62 +488,51 @@ const OrderTracking = () => {
             )}
           </div>
 
-          {/* Enhanced Tracking Timeline */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/60 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="work-sans-bold text-gray-900 text-xl">Order Journey</h3>
+          {/* Mobile-Optimized Tracking Timeline */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base work-sans-medium text-gray-900">Order Journey</h3>
               <div className="text-right">
-                <p className="text-gray-500 text-sm work-sans-medium">
-                  {currentStepIndex + 1} of {statusSteps.length} steps completed
-                </p>
+                <p className="text-gray-500 text-xs work-sans-medium">{currentStepIndex + 1}/{statusSteps.length}</p>
               </div>
             </div>
             
             <div className="relative">
               {/* Vertical Timeline Line */}
-              <div className="absolute left-7 top-0 bottom-0 w-0.5 bg-gray-200 transform -translate-x-1/2 z-0"></div>
+              <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 transform -translate-x-1/2 z-0"></div>
               
-              <div className="space-y-8 relative z-10">
+              <div className="space-y-5 relative z-10">
                 {statusSteps.map((step, index) => {
                   const isCompleted = index <= currentStepIndex;
                   const isCurrent = index === currentStepIndex;
                   const isUpcoming = index > currentStepIndex;
 
                   return (
-                    <div key={step.key} className="flex items-start space-x-4">
+                    <div key={step.key} className="flex items-start space-x-3">
                       {/* Step Indicator */}
-                      <div className={`relative flex-shrink-0 w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 shadow-lg ${
+                      <div className={`relative flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
                         isCompleted
-                          ? 'bg-gradient-to-br from-green-500 to-green-600 border-green-600 text-white scale-110'
+                          ? 'bg-green-500 border-green-500 text-white'
                           : isCurrent
-                          ? 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-600 text-white scale-110 animate-pulse shadow-xl shadow-blue-500/50'
+                          ? 'bg-blue-500 border-blue-500 text-white animate-pulse'
                           : 'bg-white border-gray-300 text-gray-400'
                       }`}>
                         {isCompleted ? (
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                           </svg>
                         ) : (
-                          <span className="text-xl">{step.icon}</span>
+                          <span className="text-sm">{step.icon}</span>
                         )}
-                        
-                        {/* Step Number */}
-                        <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full text-xs work-sans-bold flex items-center justify-center ${
-                          isCompleted || isCurrent 
-                            ? 'bg-white text-blue-600' 
-                            : 'bg-gray-300 text-gray-600'
-                        }`}>
-                          {index + 1}
-                        </div>
                       </div>
 
                       {/* Step Content */}
-                      <div className="flex-1 min-w-0 pt-1">
+                      <div className="flex-1 min-w-0 pt-0.5">
                         <div className={`transition-all duration-500 ${
                           isCompleted || isCurrent ? 'opacity-100' : 'opacity-60'
                         }`}>
-                          <div className="flex items-center space-x-3 mb-2">
-                            <h4 className={`work-sans-bold text-lg ${
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className={`text-sm work-sans-medium ${
                               isCompleted ? 'text-green-700' : 
                               isCurrent ? 'text-blue-700' : 
                               'text-gray-500'
@@ -590,13 +540,13 @@ const OrderTracking = () => {
                               {step.label}
                             </h4>
                             {isCurrent && (
-                              <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs work-sans-semibold animate-pulse">
+                              <span className="bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full text-xs work-sans-medium animate-pulse">
                                 Current
                               </span>
                             )}
                           </div>
                           
-                          <p className={`text-sm work-sans-medium mb-2 ${
+                          <p className={`text-xs work-sans-medium mb-1 ${
                             isCompleted ? 'text-green-600' : 
                             isCurrent ? 'text-blue-600' : 
                             'text-gray-400'
@@ -604,32 +554,26 @@ const OrderTracking = () => {
                             {step.description}
                           </p>
                           
-                          <div className="flex items-center space-x-4 text-xs work-sans-medium">
-                            <span className={`px-2 py-1 rounded-lg ${
+                          <div className="flex items-center space-x-2 text-xs work-sans-medium">
+                            <span className={`px-1.5 py-0.5 rounded ${
                               isCompleted ? 'bg-green-100 text-green-700' :
                               isCurrent ? 'bg-blue-100 text-blue-700' :
                               'bg-gray-100 text-gray-500'
                             }`}>
                               ⏱️ {step.estimatedTime}
                             </span>
-                            
-                            {isCurrent && currentOrder.status === 'out-for-delivery' && driverLocation && (
-                              <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded-lg">
-                                📍 {driverLocation.distance || 'Nearby'}
-                              </span>
-                            )}
                           </div>
 
                           {/* Current Status Additional Info */}
                           {isCurrent && (
-                            <div className={`mt-3 p-3 rounded-xl border ${
+                            <div className={`mt-2 p-2 rounded-lg border ${
                               currentOrder.status === 'out-for-delivery' 
                                 ? 'bg-blue-50 border-blue-200' 
                                 : currentOrder.status === 'pending'
                                 ? 'bg-gray-50 border-gray-200'
                                 : 'bg-orange-50 border-orange-200'
                             }`}>
-                              <p className={`text-sm work-sans-medium ${
+                              <p className={`text-xs work-sans-medium ${
                                 currentOrder.status === 'out-for-delivery' 
                                   ? 'text-blue-700' 
                                   : currentOrder.status === 'pending'
@@ -637,11 +581,11 @@ const OrderTracking = () => {
                                   : 'text-orange-700'
                               }`}>
                                 {currentOrder.status === 'pending' 
-                                  ? `📝 Your order has been placed successfully. Waiting for restaurant confirmation.`
+                                  ? `📝 Order placed. Waiting for confirmation.`
                                   : currentOrder.status === 'out-for-delivery' 
-                                  ? `🚚 Your order is on the way! Expected to arrive in ${estimatedDelivery}.`
+                                  ? `🚚 On the way! Arriving in ${estimatedDelivery}.`
                                   : currentOrder.status === 'preparing'
-                                  ? `👨‍🍳 Your ${currentOrder.type === 'grocery' ? 'items are being packed' : 'food is being prepared'} with care.`
+                                  ? `👨‍🍳 ${currentOrder.type === 'grocery' ? 'Packing items' : 'Preparing food'}`
                                   : `✅ ${step.description}`
                                 }
                               </p>
@@ -656,35 +600,35 @@ const OrderTracking = () => {
             </div>
           </div>
 
-          {/* Enhanced Order Details */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/60 p-6 mb-6">
-            <h3 className="work-sans-bold text-gray-900 text-xl mb-6">Order Information</h3>
+          {/* Mobile-Optimized Order Details */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-4">
+            <h3 className="text-base work-sans-medium text-gray-900 mb-4">Order Information</h3>
             
-            <div className="grid gap-4">
+            <div className="space-y-4">
               {/* Order Items */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="work-sans-semibold text-gray-900 mb-3 flex items-center space-x-2">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="text-sm work-sans-medium text-gray-900 mb-2 flex items-center space-x-1">
                   <span>📋</span>
                   <span>Order Items ({currentOrder.items?.length || 0})</span>
                 </h4>
                 <div className="space-y-2">
                   {currentOrder.items?.map((item, index) => (
-                    <div key={item.id || index} className="flex justify-between items-center bg-white p-3 rounded-lg border border-gray-200">
-                      <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <div className="bg-orange-100 text-orange-600 p-2 rounded-lg flex-shrink-0">
-                          <span className="text-sm work-sans-semibold">×{item.quantity}</span>
+                    <div key={item.id || index} className="flex justify-between items-center bg-white p-2 rounded border border-gray-200">
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <div className="bg-orange-100 text-orange-600 p-1.5 rounded flex-shrink-0">
+                          <span className="text-xs work-sans-medium">×{item.quantity}</span>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="work-sans-semibold text-gray-900 text-sm truncate">{item.name}</p>
+                          <p className="text-sm work-sans-medium text-gray-900 truncate">{item.name}</p>
                           {item.category && (
-                            <p className="text-gray-500 text-xs mt-1 work-sans-medium">
+                            <p className="text-xs work-sans-medium text-gray-500">
                               {item.category}
                             </p>
                           )}
                         </div>
                       </div>
                       <div className="text-right flex-shrink-0 ml-2">
-                        <p className="work-sans-bold text-gray-900 text-sm">
+                        <p className="text-sm work-sans-medium text-gray-900">
                           ₹{((item.price || 0) * (item.quantity || 0)).toFixed(2)}
                         </p>
                       </div>
@@ -694,55 +638,55 @@ const OrderTracking = () => {
               </div>
 
               {/* Delivery Information */}
-              <div className="bg-gray-50 rounded-xl p-4">
-                <h4 className="work-sans-semibold text-gray-900 mb-3 flex items-center space-x-2">
+              <div className="bg-gray-50 rounded-lg p-3">
+                <h4 className="text-sm work-sans-medium text-gray-900 mb-2 flex items-center space-x-1">
                   <span>📍</span>
                   <span>Delivery Details</span>
                 </h4>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-gray-600 work-sans-medium">Delivery Address</span>
-                    <span className="work-sans-semibold text-gray-900 text-sm text-right max-w-[200px]">
+                <div className="space-y-2">
+                  <div>
+                    <p className="text-xs work-sans-medium text-gray-600 mb-1">Delivery Address</p>
+                    <p className="text-sm work-sans-medium text-gray-900">
                       {formatAddress(currentOrder.deliveryAddress)}
-                    </span>
+                    </p>
                   </div>
                   
                   {currentOrder.deliveryZone && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600 work-sans-medium">Delivery Zone</span>
-                      <span className="work-sans-semibold bg-gray-100 px-3 py-1 rounded-lg text-sm">{currentOrder.deliveryZone}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs work-sans-medium text-gray-600">Delivery Zone</span>
+                      <span className="text-xs work-sans-medium bg-gray-100 px-2 py-1 rounded">{currentOrder.deliveryZone}</span>
                     </div>
                   )}
                   
                   {currentOrder.deliveryAddress?.phone && (
-                    <div className="flex justify-between items-center py-2">
-                      <span className="text-gray-600 work-sans-medium">Contact Phone</span>
-                      <span className="work-sans-semibold text-gray-900">{currentOrder.deliveryAddress.phone}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs work-sans-medium text-gray-600">Contact Phone</span>
+                      <span className="text-sm work-sans-medium text-gray-900">{currentOrder.deliveryAddress.phone}</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Payment Information */}
-              <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-4 border border-purple-200">
-                <h4 className="work-sans-semibold text-purple-900 mb-3 flex items-center space-x-2">
+              <div className="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                <h4 className="text-sm work-sans-medium text-purple-900 mb-2 flex items-center space-x-1">
                   <span>💳</span>
                   <span>Payment Summary</span>
                 </h4>
-                <div className="space-y-2">
-                  <div className="flex justify-between py-1 work-sans-medium">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-sm work-sans-medium">
                     <span className="text-purple-700">Items Total</span>
-                    <span className="work-sans-semibold">₹{currentOrder.pricing?.itemsTotal?.toFixed(2) || '0.00'}</span>
+                    <span>₹{currentOrder.pricing?.itemsTotal?.toFixed(2) || '0.00'}</span>
                   </div>
-                  <div className="flex justify-between py-1 work-sans-medium">
+                  <div className="flex justify-between text-sm work-sans-medium">
                     <span className="text-purple-700">Delivery Fee</span>
-                    <span className="work-sans-semibold">₹{currentOrder.pricing?.deliveryFee?.toFixed(2) || '0.00'}</span>
+                    <span>₹{currentOrder.pricing?.deliveryFee?.toFixed(2) || '0.00'}</span>
                   </div>
-                  <div className="flex justify-between py-1 work-sans-medium">
+                  <div className="flex justify-between text-sm work-sans-medium">
                     <span className="text-purple-700">Tax ({currentOrder.pricing?.taxPercentage || 5}%)</span>
-                    <span className="work-sans-semibold">₹{currentOrder.pricing?.taxAmount?.toFixed(2) || '0.00'}</span>
+                    <span>₹{currentOrder.pricing?.taxAmount?.toFixed(2) || '0.00'}</span>
                   </div>
-                  <div className="flex justify-between work-sans-bold text-purple-900 border-t border-purple-300 pt-2 mt-2 text-lg">
+                  <div className="flex justify-between work-sans-medium text-purple-900 border-t border-purple-300 pt-2 mt-2 text-base">
                     <span>Total Amount</span>
                     <span className="text-orange-600">₹{currentOrder.pricing?.grandTotal?.toFixed(2) || '0.00'}</span>
                   </div>
@@ -752,30 +696,30 @@ const OrderTracking = () => {
           </div>
 
           {/* Support Section */}
-          {/* <div className="text-center">
-            <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-lg border border-gray-200/60 p-6">
-              <h3 className="work-sans-semibold text-gray-900 mb-3">Need Help?</h3>
-              <p className="text-gray-600 text-sm work-sans-medium mb-4">
-                Our support team is here to help you with any questions about your order.
+          <div className="text-center">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+              <h3 className="text-sm work-sans-medium text-gray-900 mb-2">Need Help?</h3>
+              <p className="text-xs work-sans-medium text-gray-600 mb-3">
+                Our support team is here to help you.
               </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <button className="bg-blue-500 text-white px-6 py-3 rounded-xl hover:bg-blue-600 transition-colors work-sans-semibold text-sm flex items-center justify-center space-x-2">
+              <div className="flex flex-col gap-2">
+                <button className="bg-blue-500 text-white px-4 py-2.5 rounded-lg hover:bg-blue-600 transition-colors work-sans-medium text-sm flex items-center justify-center space-x-2 w-full">
                   <span>📞</span>
                   <span>Call Support</span>
                 </button>
-                <button className="bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors work-sans-semibold text-sm flex items-center justify-center space-x-2">
+                <button className="bg-white border border-gray-300 text-gray-700 px-4 py-2.5 rounded-lg hover:bg-gray-50 transition-colors work-sans-medium text-sm flex items-center justify-center space-x-2 w-full">
                   <span>💬</span>
                   <span>Live Chat</span>
                 </button>
               </div>
             </div>
-          </div> */}
+          </div>
 
           {/* Last Updated Footer */}
           {lastUpdated && (
-            <div className="text-center mt-6">
-              <p className="text-gray-500 text-xs work-sans-medium bg-white/80 backdrop-blur-lg inline-block px-4 py-2 rounded-full border border-gray-200/60">
-                🔄 Live tracking updated {formatTime(lastUpdated)}
+            <div className="text-center mt-4">
+              <p className="text-gray-500 text-xs work-sans-medium bg-white inline-block px-3 py-1.5 rounded-full border border-gray-200">
+                🔄 Updated {formatTime(lastUpdated)}
               </p>
             </div>
           )}
