@@ -151,6 +151,9 @@ const Home = () => {
   const currentMinOrder = activeTab === 'food' ? minOrderInfo.food : minOrderInfo.grocery;
   const isMinOrderEnabled = activeTab === 'food' ? minOrderInfo.foodEnabled : minOrderInfo.groceryEnabled;
 
+  // Only show View Cart button when on grocery tab and there are items in cart
+  const showViewCartButton = activeTab === 'grocery' && cartItemCount > 0;
+
   if (loading && restaurants.length === 0 && groceryItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center work-sans safe-area-bottom">
@@ -218,15 +221,15 @@ const Home = () => {
       </Helmet>
       
       <div className="min-h-screen bg-gray-50 safe-area-bottom work-sans">
-        <div className="container mx-auto px-3 py-3 safe-area-top">
-          {/* Header with Title and Refresh */}
-          <div className="flex justify-between items-center mb-3">
-            <h1 className="text-lg work-sans-bold text-gray-900 text-balance">
+        <div className="container mx-auto px-3 pt-4 pb-2 safe-area-top">
+          {/* Header with Title and Refresh - Added top padding to refresh button */}
+          <div className="flex justify-between items-start mb-2">
+            <h1 className="text-lg work-sans-bold text-gray-900 text-balance mt-1">
               {activeTab === 'food' ? 'Food Delivery' : 'Grocery Delivery'}
             </h1>
             <button
               onClick={refreshData}
-              className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors work-sans-medium flex-shrink-0 ml-2"
+              className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors work-sans-medium flex-shrink-0 ml-2 mt-1"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -279,8 +282,7 @@ const Home = () => {
                 className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400"
                 fill="none"
                 stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+                viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -412,7 +414,7 @@ const Home = () => {
 
           {/* ✅ GROCERY SECTION */}
           {activeTab === 'grocery' && (
-            <div className="grid grid-cols-2 gap-3 pb-4">
+            <div className={`grid grid-cols-2 gap-3 ${showViewCartButton ? 'pb-24' : 'pb-4'}`}> {/* Dynamic bottom padding */}
               {filteredGroceryItems.length > 0 ? (
                 filteredGroceryItems.map((item) => {
                   const quantity = getGroceryItemQuantity(item.id);
@@ -504,8 +506,8 @@ const Home = () => {
           )}
         </div>
 
-        {/* View Cart Button - Fixed at bottom (shows for both food and grocery when items are in cart) */}
-        {cartItemCount > 0 && (
+        {/* View Cart Button - Only shows for grocery tab when items are in cart */}
+        {showViewCartButton && (
           <div className="fixed bottom-20 left-0 right-0 z-30 px-4">
             <div className="container mx-auto">
               <button
