@@ -199,8 +199,8 @@ const Home = () => {
       <div className="min-h-screen bg-gray-50 pb-20 work-sans">
         <div className="container mx-auto px-4 py-4">
           {/* Header with Title and Refresh */}
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl work-sans-bold text-gray-900">
+          <div className="flex justify-between items-center mb-2">
+            <h1 className="text-1xl work-sans-bold text-gray-900">
               {activeTab === 'food' ? 'Food Delivery' : 'Grocery Delivery'}
             </h1>
             <button
@@ -276,7 +276,7 @@ const Home = () => {
                 }
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-3 pl-12 pr-10 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm work-sans-medium"
+                className="w-full px-3 py-2 pl-10 pr-8 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm work-sans-medium"
               />
               {/* Search Icon */}
               <svg
