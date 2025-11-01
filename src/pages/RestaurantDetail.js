@@ -7,7 +7,7 @@ import { Helmet } from 'react-helmet';
 const RestaurantDetail = () => {
   const { id } = useParams();
   const { restaurants, menuItems } = useSelector((state) => state.restaurant);
-  const { items, restaurantId: cartRestaurantId } = useSelector((state) => state.cart);
+  const { items, restaurantId: cartRestaurantId, type: cartType } = useSelector((state) => state.cart);
   const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
@@ -21,9 +21,16 @@ const RestaurantDetail = () => {
 
   console.log('Found restaurant:', restaurant);
 
-  // Calculate total cart items and price
-  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const cartTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Calculate total cart items and price - ONLY for items from this restaurant
+  const currentRestaurantItems = items.filter(item => 
+    item.restaurantId === id || item.restaurantId === restaurant?.restaurantid
+  );
+  
+  const cartItemCount = currentRestaurantItems.reduce((total, item) => total + item.quantity, 0);
+  const cartTotal = currentRestaurantItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+
+  // Only show View Cart if there are items from THIS restaurant and cart type is food
+  const showViewCartButton = cartItemCount > 0 && cartType === 'food' && cartRestaurantId === restaurant?.id;
 
   if (!restaurant) {
     return (
@@ -137,6 +144,15 @@ const RestaurantDetail = () => {
                   </p>
                 </div>
               )}
+
+              {/* Show current restaurant cart info */}
+              {cartItemCount > 0 && (
+                <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <p className="text-green-800 text-xs work-sans-medium">
+                    ✅ You have {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'} from this restaurant in your cart
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -218,8 +234,8 @@ const RestaurantDetail = () => {
           )}
         </div>
 
-        {/* View Cart Button - Fixed at bottom */}
-        {cartItemCount > 0 && (
+        {/* View Cart Button - Fixed at bottom - Only show for current restaurant items */}
+        {showViewCartButton && (
           <div className="fixed bottom-20 left-0 right-0 z-30 px-4">
             <div className="container mx-auto">
               <button

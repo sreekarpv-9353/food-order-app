@@ -85,6 +85,7 @@ const Cart = () => {
   const validateMinimumOrder = useCallback((orderType, amount, zoneDetails = null) => {
     // If no minimum order settings loaded yet, assume valid
     if (!minimumOrderSettings) {
+       setIsLoadingSettings(false)
       return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
     }
 
@@ -95,6 +96,7 @@ const Cart = () => {
     
     // If minimum order is disabled, return valid
     if (!isEnabled) {
+      setIsLoadingSettings(false)
       return { valid: true, isEnabled: false, minValue: 0, shortBy: 0, message: '' };
     }
 

@@ -22,6 +22,7 @@ const Home = () => {
     foodEnabled: false,
     groceryEnabled: false
   });
+  const [refreshing, setRefreshing] = useState(false);
   
   const { restaurants, loading: restaurantLoading, error: restaurantError } = useSelector((state) => state.restaurant);
   const { items: groceryItems, loading: groceryLoading, error: groceryError } = useSelector((state) => state.grocery);
@@ -97,11 +98,20 @@ const Home = () => {
     );
   });
 
-  const refreshData = () => {
-    if (activeTab === 'food') {
-      dispatch(fetchRestaurants());
-    } else {
-      dispatch(fetchGroceryItems());
+  const refreshData = async () => {
+    if (refreshing) return; // Prevent multiple clicks
+    
+    setRefreshing(true);
+    try {
+      if (activeTab === 'food') {
+        await dispatch(fetchRestaurants()).unwrap();
+      } else {
+        await dispatch(fetchGroceryItems()).unwrap();
+      }
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    } finally {
+      setRefreshing(false);
     }
   };
 
@@ -152,8 +162,8 @@ const Home = () => {
   const isMinOrderEnabled = activeTab === 'food' ? minOrderInfo.foodEnabled : minOrderInfo.groceryEnabled;
 
   // Only show View Cart button when on grocery tab and there are items in cart
-  const showViewCartButton = activeTab === 'grocery' && cartItemCount > 0;
-
+  // const showViewCartButton = activeTab === 'grocery' && cartItemCount > 0;
+  const showViewCartButton = activeTab === 'grocery' && cartItemCount > 0 && cartType === 'grocery';
   if (loading && restaurants.length === 0 && groceryItems.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center work-sans safe-area-bottom">
@@ -216,6 +226,13 @@ const Home = () => {
             .text-pretty {
               text-wrap: pretty;
             }
+            @keyframes spin {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            .animate-spin {
+              animation: spin 1s linear infinite;
+            }
           `}
         </style>
       </Helmet>
@@ -229,14 +246,24 @@ const Home = () => {
             </h1>
             <button
               onClick={refreshData}
-              className="bg-orange-500 text-white p-2 rounded-full hover:bg-orange-600 transition-colors work-sans-medium flex-shrink-0 ml-2 mt-1"
+              disabled={refreshing}
+              className={`bg-orange-500 text-white p-2 rounded-full transition-colors work-sans-medium flex-shrink-0 ml-2 mt-1 ${
+                refreshing ? 'opacity-75 cursor-not-allowed' : 'hover:bg-orange-600'
+              }`}
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              {refreshing ? (
+                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              )}
             </button>
           </div>
 
+          {/* Rest of your component remains the same */}
           {/* Tabs - Mobile Optimized */}
           <div className="flex bg-white rounded-xl p-1 mb-4 shadow-sm border border-gray-100">
             <button
@@ -414,7 +441,7 @@ const Home = () => {
 
           {/* ✅ GROCERY SECTION */}
           {activeTab === 'grocery' && (
-            <div className={`grid grid-cols-2 gap-3 ${showViewCartButton ? 'pb-24' : 'pb-4'}`}> {/* Dynamic bottom padding */}
+            <div className={`grid grid-cols-2 gap-3 ${showViewCartButton ? 'pb-24' : 'pb-4'}`}>
               {filteredGroceryItems.length > 0 ? (
                 filteredGroceryItems.map((item) => {
                   const quantity = getGroceryItemQuantity(item.id);
