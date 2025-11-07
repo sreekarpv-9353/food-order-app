@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { updateQuantity, removeFromCart, clearCart } from '../redux/slices/cartSlice';
 import { placeOrder, clearError } from '../redux/slices/orderSlice';
 import { settingsService } from '../services/settingsService';
+import { groceryService } from '../services/groceryService'; // Add this import
 import { Helmet } from 'react-helmet';
 
 const Cart = () => {
@@ -13,6 +14,7 @@ const Cart = () => {
   const { user } = useSelector((state) => state.auth);
   const { loading, error } = useSelector((state) => state.order);
   const { restaurants } = useSelector((state) => state.restaurant);
+  const { items: groceryItems } = useSelector((state) => state.grocery);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   
@@ -33,6 +35,7 @@ const Cart = () => {
   const [matchedZoneDetails, setMatchedZoneDetails] = useState(null);
   const [deliveryFeeDetails, setDeliveryFeeDetails] = useState({ fee: 0, matchType: 'default' });
   const [minimumOrderSettings, setMinimumOrderSettings] = useState(null);
+  const [updatingStock, setUpdatingStock] = useState(false); // Add this state
 
   // Clear error on component mount
   useEffect(() => {
@@ -53,6 +56,80 @@ const Cart = () => {
       } : null;
     }
     return null;
+  };
+
+  // Get current stock for grocery items
+  const getItemStock = (itemId) => {
+    if (type === 'grocery') {
+      const groceryItem = groceryItems.find(gItem => gItem.id === itemId);
+      return groceryItem ? groceryItem.stock : 0;
+    }
+    // For food items, assume unlimited stock
+    return 9999;
+  };
+
+  // Check if item is out of stock
+  const isItemOutOfStock = (itemId, currentQuantity = 0) => {
+    if (type === 'food') return false; // Food items don't have stock management
+    
+    const stock = getItemStock(itemId);
+    return stock <= 0 || currentQuantity >= stock;
+  };
+
+  // Check if we can add more quantity to an item
+  const canAddMoreQuantity = (itemId, currentQuantity) => {
+    if (type === 'food') return true; // Food items don't have stock limits
+    
+    const stock = getItemStock(itemId);
+    return currentQuantity < stock && stock > 0;
+  };
+
+  // Get stock information for display
+  const getStockInfo = (itemId, currentQuantity) => {
+    if (type === 'food') return null;
+    
+    const stock = getItemStock(itemId);
+    if (stock <= 0) {
+      return { text: 'Out of Stock', color: 'text-red-600', bgColor: 'bg-red-50', borderColor: 'border-red-200' };
+    } else if (stock < 5) {
+      return { text: `Only ${stock} left`, color: 'text-orange-600', bgColor: 'bg-orange-50', borderColor: 'border-orange-200' };
+    } else if (currentQuantity >= stock) {
+      return { text: 'Max quantity reached', color: 'text-yellow-600', bgColor: 'bg-yellow-50', borderColor: 'border-yellow-200' };
+    }
+    return null;
+  };
+
+  // Function to update stock in Firebase after successful order
+  const updateGroceryStock = async (orderItems) => {
+    if (type !== 'grocery') return; // Only update stock for grocery orders
+    
+    try {
+      setUpdatingStock(true);
+      console.log('📦 [Cart] Updating grocery stock for order...');
+      
+      const stockUpdates = [];
+      
+      for (const item of orderItems) {
+        const currentStock = getItemStock(item.id);
+        const newStock = Math.max(0, currentStock - item.quantity);
+        
+        console.log(`🔄 [Cart] Updating stock for ${item.name}: ${currentStock} -> ${newStock}`);
+        
+        stockUpdates.push(
+          groceryService.updateGroceryItemStock(item.id, newStock)
+        );
+      }
+      
+      // Wait for all stock updates to complete
+      await Promise.all(stockUpdates);
+      console.log('✅ [Cart] All grocery stock updated successfully');
+      
+    } catch (error) {
+      console.error('❌ [Cart] Error updating grocery stock:', error);
+      throw new Error('Failed to update inventory. Please contact support.');
+    } finally {
+      setUpdatingStock(false);
+    }
   };
 
   // Load minimum order settings from app settings
@@ -244,6 +321,14 @@ const Cart = () => {
     if (newQuantity < 1) {
       dispatch(removeFromCart(itemId));
     } else {
+      // Check stock before updating quantity for grocery items
+      if (type === 'grocery') {
+        const stock = getItemStock(itemId);
+        if (newQuantity > stock) {
+          // Don't allow increasing beyond available stock
+          return;
+        }
+      }
       dispatch(updateQuantity({ itemId, quantity: newQuantity }));
     }
   };
@@ -252,7 +337,7 @@ const Cart = () => {
     dispatch(removeFromCart(itemId));
   };
 
-  // Enhanced order validation with minimum order check
+  // Enhanced order validation with minimum order check and stock validation
   const validateOrderData = () => {
     if (!user || !user.uid) {
       throw new Error('Please login to place order');
@@ -273,6 +358,30 @@ const Cart = () => {
 
     if (items.length === 0) {
       throw new Error('Cart cannot be empty');
+    }
+
+    // Validate stock for grocery items
+    if (type === 'grocery') {
+      const outOfStockItems = items.filter(item => {
+        const stock = getItemStock(item.id);
+        return stock <= 0;
+      });
+
+      if (outOfStockItems.length > 0) {
+        const itemNames = outOfStockItems.map(item => item.name).join(', ');
+        throw new Error(`Some items are out of stock: ${itemNames}. Please remove them to continue.`);
+      }
+
+      // Check if any items exceed available stock
+      const exceededStockItems = items.filter(item => {
+        const stock = getItemStock(item.id);
+        return item.quantity > stock;
+      });
+
+      if (exceededStockItems.length > 0) {
+        const itemNames = exceededStockItems.map(item => item.name).join(', ');
+        throw new Error(`Quantity exceeded for: ${itemNames}. Available stock has changed.`);
+      }
     }
 
     // Validate address structure
@@ -301,6 +410,58 @@ const Cart = () => {
     }
   };
 
+  // Helper function to clean address data and remove undefined fields
+  const cleanAddressData = (address) => {
+    if (!address) return null;
+    
+    const cleaned = { ...address };
+    
+    // Remove undefined, null, or empty string fields
+    Object.keys(cleaned).forEach(key => {
+      if (cleaned[key] === undefined || cleaned[key] === null || cleaned[key] === '') {
+        delete cleaned[key];
+      }
+    });
+
+    // Ensure required fields exist with defaults if needed
+    return {
+      name: cleaned.name || '',
+      street: cleaned.street || '',
+      city: cleaned.city || '',
+      state: cleaned.state || '',
+      zipCode: cleaned.zipCode || '',
+      phone: cleaned.phone || '',
+      // Optional fields - only include if they exist
+      ...(cleaned.villageTown && { villageTown: cleaned.villageTown }),
+      ...(cleaned.landmark && { landmark: cleaned.landmark }),
+      ...(cleaned.addressType && { addressType: cleaned.addressType })
+    };
+  };
+
+  // Helper function to clean item data
+  const cleanItemData = (item) => {
+    const cleaned = {
+      id: item.id || '',
+      name: item.name || '',
+      price: item.price || 0,
+      quantity: item.quantity || 1,
+      // Optional fields - only include if they exist
+      ...(item.category && { category: item.category }),
+      ...(item.image && { image: item.image }),
+      ...(item.unit && { unit: item.unit }),
+      ...(item.displayQuantity && { displayQuantity: item.displayQuantity })
+    };
+
+    // Remove any undefined values that might have slipped through
+    Object.keys(cleaned).forEach(key => {
+      if (cleaned[key] === undefined) {
+        delete cleaned[key];
+      }
+    });
+
+    return cleaned;
+  };
+
   const handlePlaceOrder = async () => {
     try {
       // Validate all data before proceeding
@@ -311,60 +472,87 @@ const Cart = () => {
       
       console.log('🛒 [Cart] Preparing order payload...');
       
-      // Create clean order payload
+      // Clean the address data to remove undefined fields
+      const cleanedAddress = cleanAddressData(selectedAddress);
+      
+      // Clean all items data
+      const cleanedItems = items.map(item => cleanItemData(item));
+      
+      // Create clean order payload with proper data validation
       const orderPayload = {
         // User & Order Info
         userId: user.uid,
         type: type,
         restaurantId: restaurantId || null,
         
-        // Items
-        items: items.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity,
-          category: item.category || '',
-          image: item.image || ''
-        })),
+        // Items - use cleaned items
+        items: cleanedItems,
         
         // Pricing Details
         pricing: {
-          itemsTotal: totalAmount,
-          deliveryFee: deliveryFee,
-          taxAmount: taxAmount,
+          itemsTotal: totalAmount || 0,
+          deliveryFee: deliveryFee || 0,
+          taxAmount: taxAmount || 0,
           taxPercentage: settings?.taxPercentage || 5,
-          grandTotal: grandTotal,
+          grandTotal: grandTotal || 0,
           currency: 'INR',
-          meetsMinimumOrder: orderValidation.valid,
-          minimumOrderRequired: orderValidation.minValue
+          meetsMinimumOrder: orderValidation.valid || false,
+          minimumOrderRequired: orderValidation.minValue || 0
         },
         
         // Restaurant Data (for food orders)
-        ...(type === 'food' && restaurantData && { restaurant: restaurantData }),
+        ...(type === 'food' && restaurantData && { 
+          restaurant: {
+            name: restaurantData.name || '',
+            cuisine: restaurantData.cuisine || '',
+            rating: restaurantData.rating || '4.2',
+            deliveryTime: restaurantData.deliveryTime || '30 min',
+            costForTwo: restaurantData.costForTwo || '250',
+            ...(restaurantData.image && { image: restaurantData.image })
+          }
+        }),
         
-        // Delivery Information
-        deliveryAddress: selectedAddress,
-        deliveryZone: zoneName,
-        deliveryTime: deliveryTime,
-        matchedZoneType: deliveryFeeDetails.matchType,
+        // Delivery Information - use cleaned address
+        deliveryAddress: cleanedAddress,
+        deliveryZone: zoneName || 'Standard Delivery',
+        deliveryTime: deliveryTime || '30-45 min',
+        matchedZoneType: deliveryFeeDetails.matchType || 'default',
         
         // Order Status
         paymentMethod: 'COD',
+        status: 'pending',
         
         // Metadata
-        itemCount: items.length,
-        customerName: selectedAddress.name,
-        customerPhone: selectedAddress.phone,
-        minimumOrderValidation: orderValidation
+        itemCount: items.length || 0,
+        customerName: cleanedAddress.name || '',
+        customerPhone: cleanedAddress.phone || '',
+        minimumOrderValidation: {
+          valid: orderValidation.valid || false,
+          isEnabled: orderValidation.isEnabled || false,
+          minValue: orderValidation.minValue || 0,
+          shortBy: orderValidation.shortBy || 0,
+          message: orderValidation.message || ''
+        },
+        
+        // Timestamps
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
-      console.log('📦 [Cart] Order payload:', orderPayload);
+      // Final validation - remove any undefined fields from the entire payload
+      const finalPayload = JSON.parse(JSON.stringify(orderPayload));
+      
+      console.log('📦 [Cart] Final order payload:', finalPayload);
 
       // Dispatch the order
-      const result = await dispatch(placeOrder(orderPayload)).unwrap();
+      const result = await dispatch(placeOrder(finalPayload)).unwrap();
       
       console.log('✅ [Cart] Order placed successfully:', result);
+      
+      // Update grocery stock after successful order placement
+      if (type === 'grocery') {
+        await updateGroceryStock(items);
+      }
       
       // Clear cart and navigate on success
       dispatch(clearCart());
@@ -397,6 +585,12 @@ const Cart = () => {
         alert(errorMessage);
         navigate('/addresses');
       } else if (errorMessage.includes('Cart cannot be empty')) {
+        alert(errorMessage);
+      } else if (errorMessage.includes('out of stock') || errorMessage.includes('stock') || errorMessage.includes('exceeded')) {
+        alert(errorMessage);
+        // Refresh the page to update stock status
+        window.location.reload();
+      } else if (errorMessage.includes('inventory') || errorMessage.includes('stock update')) {
         alert(errorMessage);
       } else {
         alert(errorMessage);
@@ -450,7 +644,10 @@ const Cart = () => {
     name: item.name,
     quantity: item.quantity,
     price: item.price,
-    total: item.price * item.quantity
+    total: item.price * item.quantity,
+    displayQuantity: item.displayQuantity || `${item.quantity || 1} ${item.unit || 'pc'}`,
+    image: item.image,
+    category: item.category
   }));
 
   // Determine if button should be disabled
@@ -459,7 +656,8 @@ const Cart = () => {
     !selectedAddress || 
     !orderValidation.valid || 
     !isDeliveryAvailable || 
-    isLoadingSettings;
+    isLoadingSettings ||
+    updatingStock; // Add updatingStock to disabled conditions
 
   return (
     <>
@@ -609,55 +807,142 @@ const Cart = () => {
             </div>
           )}
 
-            {/* Cart Items Section */}
-            <div className="mb-6">
-              <h2 className="text-lg work-sans-bold mb-3">Cart Items</h2>
-              <div className="space-y-3">
-                {items.map(item => (
-                  <div key={item.id} className="bg-white rounded-xl shadow-sm p-3 border border-gray-100">
-                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
-                      {/* Item Details - Left Side */}
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm work-sans-semibold text-gray-900 mb-1 break-words leading-tight">
-                          {item.name}
-                        </h3>
-                        <p className="text-gray-600 work-sans-medium text-sm">₹{item.price}</p>
-                        {item.category && (
-                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded mt-1 inline-block work-sans-medium break-words">
-                            {item.category}
-                          </span>
+          {/* Cart Items Section */}
+          <div className="mb-6">
+            <h2 className="text-lg work-sans-bold mb-3">Cart Items</h2>
+            <div className="space-y-3">
+              {items.map(item => {
+                const hasImage = item.image && item.image.trim() !== '';
+                const displayQuantity = item.displayQuantity || `${item.quantity || 1} ${item.unit || 'pc'}`;
+                const stockInfo = getStockInfo(item.id, item.quantity);
+                const isOutOfStock = isItemOutOfStock(item.id);
+                const canAddMore = canAddMoreQuantity(item.id, item.quantity);
+                
+                return (
+                  <div key={item.id} className={`bg-white rounded-xl shadow-sm p-3 border ${
+                    isOutOfStock ? 'border-red-200 bg-red-50' : 'border-gray-100'
+                  }`}>
+                    <div className="flex gap-3">
+                      {/* Item Image */}
+                      <div className="flex-shrink-0">
+                        {hasImage ? (
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className={`w-16 h-16 object-cover rounded-lg ${
+                              isOutOfStock ? 'grayscale opacity-60' : ''
+                            }`}
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              const nextSibling = e.target.nextElementSibling;
+                              if (nextSibling) {
+                                nextSibling.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : (
+                          <div className={`w-16 h-16 rounded-lg flex items-center justify-center ${
+                            isOutOfStock 
+                              ? 'bg-red-100 grayscale opacity-60' 
+                              : 'bg-gradient-to-br from-green-50 to-green-100'
+                          }`}>
+                            <span className="text-xl">🛒</span>
+                          </div>
                         )}
                       </div>
-                      
-                      {/* Quantity Controls - Right Side */}
-                      <div className="flex flex-col items-end space-y-2 flex-shrink-0">
-                        <div className="flex items-center space-x-3 bg-orange-50 px-2 py-1 rounded-lg">
-                          <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                            className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold min-w-[28px]"
-                          >
-                            <span className="text-sm text-gray-600">−</span>
-                          </button>
-                          <span className="work-sans-bold text-gray-800 min-w-6 text-center text-sm">{item.quantity}</span>
-                          <button
-                            onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                            className="w-7 h-7 bg-white rounded flex items-center justify-center shadow-sm hover:bg-gray-50 transition-colors border border-gray-200 work-sans-bold min-w-[28px]"
-                          >
-                            <span className="text-sm text-gray-600">+</span>
-                          </button>
+
+                      {/* Item Details */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`text-sm work-sans-semibold mb-1 break-words leading-tight ${
+                              isOutOfStock ? 'text-gray-500' : 'text-gray-900'
+                            }`}>
+                              {item.name}
+                              {isOutOfStock && (
+                                <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded work-sans-medium">
+                                  Out of Stock
+                                </span>
+                              )}
+                            </h3>
+                            <p className={`work-sans-medium text-xs mb-1 ${
+                              isOutOfStock ? 'text-gray-400' : 'text-gray-600'
+                            }`}>
+                              {displayQuantity}
+                            </p>
+                            <p className={`work-sans-bold text-sm ${
+                              isOutOfStock ? 'text-gray-400' : 'text-gray-900'
+                            }`}>
+                              ₹{item.price}
+                            </p>
+                          </div>
+                          
+                          {/* Quantity Controls */}
+                          <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-2">
+                            <div className={`flex items-center space-x-2 px-2 py-1 rounded-lg ${
+                              isOutOfStock ? 'bg-gray-100' : 'bg-orange-50'
+                            }`}>
+                              <button
+                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                disabled={isOutOfStock}
+                                className={`w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border work-sans-bold min-w-[28px] ${
+                                  isOutOfStock
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'
+                                    : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'
+                                }`}
+                              >
+                                <span className="text-sm">−</span>
+                              </button>
+                              <span className={`work-sans-bold min-w-6 text-center text-sm ${
+                                isOutOfStock ? 'text-gray-500' : 'text-gray-800'
+                              }`}>
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                disabled={!canAddMore || isOutOfStock}
+                                className={`w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border work-sans-bold min-w-[28px] ${
+                                  !canAddMore || isOutOfStock
+                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'
+                                    : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'
+                                }`}
+                              >
+                                <span className="text-sm">+</span>
+                              </button>
+                            </div>
+                            <button
+                              onClick={() => handleRemoveItem(item.id)}
+                              className={`text-xs work-sans-medium whitespace-nowrap ${
+                                isOutOfStock ? 'text-red-400 hover:text-red-500' : 'text-red-500 hover:text-red-700'
+                              }`}
+                            >
+                              Remove
+                            </button>
+                          </div>
                         </div>
-                        <button
-                          onClick={() => handleRemoveItem(item.id)}
-                          className="text-red-500 hover:text-red-700 text-xs work-sans-medium whitespace-nowrap"
-                        >
-                          Remove
-                        </button>
+
+                        {/* Stock Information and Total Price */}
+                        <div className="flex justify-between items-center mt-2">
+                          <div className="flex-1">
+                            {stockInfo && !isOutOfStock && (
+                              <span className={`text-xs px-2 py-1 rounded work-sans-medium border ${stockInfo.bgColor} ${stockInfo.color} ${stockInfo.borderColor}`}>
+                                {stockInfo.text}
+                              </span>
+                            )}
+                          </div>
+                          <p className={`work-sans-semibold text-sm ${
+                            isOutOfStock ? 'text-gray-400' : 'text-gray-900'
+                          }`}>
+                            ₹{(item.price * item.quantity).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
             </div>
+          </div>
 
           {/* Order Summary Section */}
           <div className="bg-white rounded-xl shadow-sm p-4 border border-gray-100 mb-6">
@@ -722,8 +1007,8 @@ const Cart = () => {
                 <p className="text-sm work-sans-medium text-gray-700 mb-1">Items:</p>
                 {itemsBreakdown.map((item, index) => (
                   <div key={index} className="flex justify-between text-xs text-gray-600 work-sans-medium">
-                    <span>{item.name} × {item.quantity}</span>
-                    <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                    <span className="flex-1 truncate mr-2">{item.name} × {item.quantity}</span>
+                    <span className="flex-shrink-0">₹{(item.price * item.quantity).toFixed(2)}</span>
                   </div>
                 ))}
               </div>
@@ -787,10 +1072,10 @@ const Cart = () => {
                 </div>
               ) : !isDeliveryAvailable ? (
                 '🚫 Delivery Not Available'
-              ) : loading ? (
+              ) : loading || updatingStock ? (
                 <div className="flex items-center justify-center">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                  Placing Order...
+                  {updatingStock ? 'Updating Inventory...' : 'Placing Order...'}
                 </div>
               ) : (
                 `Place Order • ₹${grandTotal.toFixed(2)}`
