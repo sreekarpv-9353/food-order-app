@@ -16,6 +16,7 @@ const RestaurantDetail = () => {
 
   // State to track if we should show compact view cart
   const [showCompactCart, setShowCompactCart] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const contentRef = useRef(null);
   const lastScrollY = useRef(0);
 
@@ -79,8 +80,19 @@ const RestaurantDetail = () => {
     item.restaurantId === id || item.restaurantId === restaurant.restaurantid
   );
 
+  // Filter menu items based on search query
+  const filteredMenuItems = restaurantMenuItems.filter(item => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      item.name?.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query) ||
+      item.category?.toLowerCase().includes(query)
+    );
+  });
+
   // Group menu items by category
-  const menuByCategory = restaurantMenuItems.reduce((acc, item) => {
+  const menuByCategory = filteredMenuItems.reduce((acc, item) => {
     const category = item.category || 'Other';
     if (!acc[category]) {
       acc[category] = [];
@@ -116,6 +128,10 @@ const RestaurantDetail = () => {
 
   const handleBack = () => {
     navigate(-1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
   };
 
   // Check if we're adding from a different restaurant
@@ -279,12 +295,28 @@ const RestaurantDetail = () => {
               -webkit-box-orient: vertical;
               overflow: hidden;
             }
+            /* Mobile-optimized restaurant image */
+            .restaurant-image-container {
+              position: relative;
+              width: 100%;
+              height: 0;
+              padding-bottom: 45%; /* Reduced from 60% for mobile */
+              overflow: hidden;
+            }
+            .restaurant-image-container img {
+              position: absolute;
+              top: 0;
+              left: 0;
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+            }
           `}
         </style>
       </Helmet>
       
       <div className="min-h-screen bg-white work-sans" ref={contentRef}>
-        {/* Restaurant Header with Back Button - Mobile Optimized */}
+        {/* Restaurant Header with Back Button - REMOVED RESTAURANT NAME */}
         <div className="sticky top-0 z-20 bg-white border-b border-gray-100 safe-area-top shadow-sm">
           <div className="container mx-auto px-3 py-2">
             <div className="flex items-center justify-between">
@@ -297,57 +329,59 @@ const RestaurantDetail = () => {
                 </svg>
                 <span className="work-sans-medium text-xs">Back</span>
               </button>
-              <h1 className="text-base work-sans-bold text-gray-900 flex-1 text-center px-2 line-clamp-1">
-                {restaurant.name}
-              </h1>
+              {/* REMOVED RESTAURANT NAME FROM HEADER */}
+              <div className="flex-1"></div>
               <div className="w-8"></div> {/* Spacer for balance */}
             </div>
           </div>
         </div>
 
-        {/* Main Content with FIXED bottom padding */}
-        <div className={`container mx-auto px-3 py-3 ${showViewCartButton ? 'pb-28' : 'pb-4'} safe-area-bottom`}>
-          {/* Restaurant Header Card - Mobile Optimized */}
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-4 border border-gray-100 relative">
-            {/* Restaurant Image */}
+        {/* Main Content with PROPER BOTTOM SPACING FOR BOTTOM BAR */}
+        <div className={`container mx-auto px-3 ${showViewCartButton ? 'pb-40' : 'pb-24'} safe-area-bottom`}>
+          {/* Restaurant Header Card */}
+          <div className="bg-white overflow-hidden border-b border-gray-100 relative">
+            {/* Restaurant Image - MOBILE OPTIMIZED SIZE */}
             {passedImage && (
-              <div className="w-full h-40 bg-gray-100 relative">
-                <img
-                  src={passedImage}
-                  alt={restaurant.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    const nextSibling = e.target.nextElementSibling;
-                    if (nextSibling) {
-                      nextSibling.style.display = 'flex';
-                    }
-                  }}
-                />
-                {/* Placeholder for failed images */}
-                <div className="image-placeholder" style={{ display: 'none' }}>
-                  <span className="text-3xl">🍽️</span>
+              <div className="w-full bg-gray-100 relative">
+                <div className="restaurant-image-container">
+                  <img
+                    src={passedImage}
+                    alt={restaurant.name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      const nextSibling = e.target.nextElementSibling;
+                      if (nextSibling) {
+                        nextSibling.style.display = 'flex';
+                      }
+                    }}
+                  />
+                  {/* Placeholder for failed images */}
+                  <div className="image-placeholder" style={{ display: 'none' }}>
+                    <span className="text-2xl">🍽️</span>
+                  </div>
+                  
+                  {/* Status Badge */}
+                  {!isOpen && (
+                    <div className="status-badge">
+                      🔒 Closed
+                    </div>
+                  )}
+                  
+                  {/* Featured Badge */}
+                  {restaurant.featured && (
+                    <div className="featured-badge">
+                      ⭐ Featured
+                    </div>
+                  )}
                 </div>
-                
-                {/* Status Badge */}
-                {!isOpen && (
-                  <div className="status-badge">
-                    🔒 Closed
-                  </div>
-                )}
-                
-                {/* Featured Badge */}
-                {restaurant.featured && (
-                  <div className="featured-badge">
-                    ⭐ Featured
-                  </div>
-                )}
               </div>
             )}
             
             <div className="p-4">
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1">
+                  {/* RESTAURANT NAME SHOWN HERE ONLY */}
                   <h1 className="text-lg work-sans-bold mb-1 text-gray-900 text-balance">{restaurant.name}</h1>
                   <div className="flex items-center flex-wrap gap-1 mb-1">
                     <p className="text-gray-600 text-sm work-sans-medium">{restaurant.cuisine || 'Various Cuisine'}</p>
@@ -374,37 +408,6 @@ const RestaurantDetail = () => {
                   <span>⏱️ {restaurant.preparationTime || '25-30 min'}</span>
                 </div>
               </div>
-              
-              {/* Service Availability */}
-              <div className="flex items-center gap-1 mb-3">
-                {restaurant.deliveryAvailable && (
-                  <span className="service-badge bg-green-100 text-green-700">🚚</span>
-                )}
-                {restaurant.takeawayAvailable && (
-                  <span className="service-badge bg-blue-100 text-blue-700">📦</span>
-                )}
-                {restaurant.dineInAvailable && (
-                  <span className="service-badge bg-purple-100 text-purple-700">🍽️</span>
-                )}
-              </div>
-
-              {/* Pricing Info */}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-                {restaurant.deliveryFee > 0 ? (
-                  <p className="text-xs text-gray-600 work-sans-medium">
-                    Delivery: <strong className="text-gray-800">₹{restaurant.deliveryFee}</strong>
-                  </p>
-                ) : (
-                  <p className="text-xs text-green-600 work-sans-medium">
-                    🎉 Free
-                  </p>
-                )}
-                {restaurant.packagingFee > 0 && (
-                  <p className="text-xs text-gray-600 work-sans-medium">
-                    Packaging: <strong className="text-gray-800">₹{restaurant.packagingFee}</strong>
-                  </p>
-                )}
-              </div>
 
               {/* Warning Messages */}
               {!isOpen && (
@@ -422,48 +425,61 @@ const RestaurantDetail = () => {
                   </p>
                 </div>
               )}
-
-              {/* Show current restaurant cart info */}
-              {cartItemCount > 0 && (
-                <div className="mt-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-800 text-xs work-sans-medium">
-                    ✅ {cartItemCount} {cartItemCount === 1 ? 'item' : 'items'} in cart
-                  </p>
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Menu Section */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
+          {/* Menu Section with Search */}
+          <div className="mb-4 mt-4">
+            <div className="flex items-center justify-between mb-3">
               <div>
-                <h2 className="text-base work-sans-bold text-gray-900">Menu</h2>
-                <p className="text-gray-600 text-xs mt-0.5 work-sans-medium">
-                  {restaurantMenuItems.length} {restaurantMenuItems.length === 1 ? 'item' : 'items'} available
-                </p>
+                <h2 className="text-base work-sans-bold text-gray-900">Menu Items</h2>
               </div>
-              {cartItemCount > 0 && (
-                <div className="bg-orange-500 text-white px-2 py-1 rounded-full work-sans-semibold text-xs">
-                  {cartItemCount} in cart
+            </div>
+
+            {/* Search Bar - Mobile Optimized */}
+            <div className="mb-4">
+              <div className="relative w-full">
+                <input
+                  type="text"
+                  placeholder="🔍 Search menu items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full px-3 py-3 pl-10 pr-8 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm work-sans-medium bg-gray-50 transition-all"
+                />
+                {/* Clear Button */}
+                {searchQuery && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+              
+              {/* Search Results Info */}
+              {searchQuery && (
+                <div className="mt-2 text-xs text-gray-600 work-sans-medium text-pretty bg-blue-50 px-3 py-1.5 rounded-lg">
+                  <span>
+                    Found <strong className="text-orange-600">{filteredMenuItems.length}</strong> item(s) matching "<strong>{searchQuery}</strong>"
+                  </span>
                 </div>
               )}
             </div>
           </div>
           
-          {restaurantMenuItems.length > 0 ? (
+          {filteredMenuItems.length > 0 ? (
             <div className="space-y-4">
               {Object.entries(menuByCategory).map(([category, items]) => (
                 <div key={category} className="space-y-3">
                   {/* Category Header */}
                   <div className="border-b border-gray-200 pb-1">
                     <h3 className="text-sm work-sans-bold text-gray-900">{category}</h3>
-                    <p className="text-gray-500 text-xs work-sans-medium">
-                      {items.length} {items.length === 1 ? 'item' : 'items'}
-                    </p>
                   </div>
                   
-                  {/* Menu Items - IMPROVED LAYOUT */}
+                  {/* Menu Items */}
                   <div className="space-y-3">
                     {items.map(item => {
                       const quantity = getItemQuantity(item.id);
@@ -479,7 +495,7 @@ const RestaurantDetail = () => {
                           }`}
                         >
                           <div className="flex gap-3">
-                            {/* Menu Item Image - Fixed Size */}
+                            {/* Menu Item Image */}
                             <div className="flex-shrink-0 w-16 h-16">
                               <div className="image-container">
                                 {hasImage ? (
@@ -503,7 +519,7 @@ const RestaurantDetail = () => {
                               </div>
                             </div>
                             
-                            {/* Content Area - Improved Layout */}
+                            {/* Content Area */}
                             <div className="flex-1 min-w-0">
                               <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
                                 {/* Text Content */}
@@ -517,7 +533,7 @@ const RestaurantDetail = () => {
                                   )}
                                 </div>
                                 
-                                {/* Add to Cart / Quantity Controls - IMPROVED POSITIONING */}
+                                {/* Add to Cart / Quantity Controls */}
                                 <div className="flex flex-col items-end mt-1">
                                   {!item.available ? (
                                     <span className="bg-gray-200 text-gray-500 px-2 py-1.5 rounded-lg text-xs work-sans-semibold whitespace-nowrap">
@@ -598,20 +614,33 @@ const RestaurantDetail = () => {
                   </div>
                 </div>
               ))}
-              {showViewCartButton && (
-                <div className="h-28"></div>
-              )}
+              {/* EXTRA BOTTOM SPACING TO ENSURE LAST ITEM IS VISIBLE */}
+              <div className="h-24"></div>
             </div>
           ) : (
             <div className="text-center py-12">
-              <div className="text-gray-300 text-5xl mb-3">📋</div>
-              <h3 className="text-base work-sans-bold text-gray-900 mb-1">No menu items available</h3>
-              <p className="text-gray-500 text-xs work-sans-medium">Check back later for menu updates</p>
+              <div className="text-gray-300 text-5xl mb-3">
+                {searchQuery ? '🔍' : '📋'}
+              </div>
+              <h3 className="text-base work-sans-bold text-gray-900 mb-1">
+                {searchQuery ? 'No items found' : 'No menu items available'}
+              </h3>
+              <p className="text-gray-500 text-xs work-sans-medium">
+                {searchQuery ? 'Try adjusting your search terms' : 'Check back later for menu updates'}
+              </p>
+              {searchQuery && (
+                <button
+                  onClick={handleClearSearch}
+                  className="mt-3 bg-orange-500 text-white px-4 py-2 rounded-lg text-sm hover:bg-orange-600 work-sans-semibold transition-all hover:scale-105"
+                >
+                  Clear Search
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Enhanced View Cart Button - MOBILE OPTIMIZED */}
+        {/* Enhanced View Cart Button - POSITIONED ABOVE BOTTOM BAR */}
         {showViewCartButton && (
           <>
             {/* Full View Cart Button - Shown when at top of page */}
@@ -620,7 +649,7 @@ const RestaurantDetail = () => {
                 <div className="container mx-auto">
                   <button
                     onClick={handleViewCart}
-                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 work-sans-semibold flex justify-between items-center hover:scale-[1.02]"
+                    className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-3 px-4 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 work-sans-semibold flex justify-between items-center hover:scale-[1.02] border-2 border-white"
                   >
                     <div className="flex items-center space-x-2">
                       <span className="bg-white bg-opacity-20 rounded-full p-1.5">
@@ -645,7 +674,7 @@ const RestaurantDetail = () => {
               <div className="container mx-auto">
                 <button
                   onClick={handleViewCart}
-                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 work-sans-semibold flex justify-between items-center hover:scale-[1.02]"
+                  className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white py-2.5 px-3 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 work-sans-semibold flex justify-between items-center hover:scale-[1.02] border-2 border-white"
                 >
                   <div className="flex items-center space-x-1.5">
                     <span className="bg-white bg-opacity-20 rounded-full p-1">
