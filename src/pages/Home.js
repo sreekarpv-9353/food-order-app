@@ -721,7 +721,7 @@ const Home = () => {
                           </div>
 
                           {/* Service Availability */}
-                          <div className="flex items-center gap-1 mb-1">
+                          {/* <div className="flex items-center gap-1 mb-1">
                             {restaurant.deliveryAvailable && (
                               <span className="service-badge bg-green-100 text-green-700">🚚</span>
                             )}
@@ -731,7 +731,7 @@ const Home = () => {
                             {restaurant.dineInAvailable && (
                               <span className="service-badge bg-purple-100 text-purple-700">🍽️</span>
                             )}
-                          </div>
+                          </div> */}
 
                           {/* Pricing Info */}
                           <div className="flex items-center justify-between pt-1 border-t border-gray-100">
