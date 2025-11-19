@@ -160,6 +160,57 @@ const RestaurantDetail = () => {
 
   const isOpen = isRestaurantOpen();
 
+  // Star Rating Component for Menu Items
+ // Replace the existing StarRating component with this fixed version
+const StarRating = ({ rating, ratingCount, size = "small" }) => {
+  const starSize = size === "small" ? "w-3 h-3" : "w-4 h-4";
+  
+  return (
+    <div className="flex items-center space-x-1">
+      <div className="flex items-center">
+        {[1, 2, 3, 4, 5].map((star) => {
+          const isFilled = star <= rating;
+          const isHalfFilled = !isFilled && star - 0.5 <= rating;
+          
+          return (
+            <div key={star} className="relative">
+              {/* Empty star background */}
+              <span className={`${starSize} text-gray-300`}>
+                ★
+              </span>
+              {/* Filled or half-filled star overlay */}
+              {isFilled ? (
+                <span className={`${starSize} text-yellow-400 absolute top-0 left-0`}>
+                  ★
+                </span>
+              ) : isHalfFilled ? (
+                <div className="absolute top-0 left-0">
+                  <span className={`${starSize} text-gray-300`}>
+                    ★
+                  </span>
+                  <span className={`${starSize} text-yellow-400 absolute top-0 left-0 overflow-hidden`} style={{ width: '50%' }}>
+                    ★
+                  </span>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+      <span className={`text-gray-600 work-sans-medium ${
+        size === "small" ? 'text-xs' : 'text-sm'
+      }`}>
+        {rating.toFixed(1)}
+        {ratingCount > 0 && (
+          <span className="text-gray-500 ml-0.5">
+            ({ratingCount})
+          </span>
+        )}
+      </span>
+    </div>
+  );
+};
+
   return (
     <>
       <Helmet>
@@ -486,6 +537,8 @@ const RestaurantDetail = () => {
                       const totalPrice = (item.price * quantity).toFixed(2);
                       const hasImage = item.imageUrl && item.imageUrl.trim() !== '';
                       const displayImage = item.image || '🍽️';
+                      const itemRating = item.rating || 4.0;
+                      const itemRatingCount = item.ratingCount || 0;
                       
                       return (
                         <div 
@@ -526,6 +579,16 @@ const RestaurantDetail = () => {
                                 <div className="flex-1 min-w-0 mr-2">
                                   <h3 className="text-sm work-sans-semibold text-gray-900 mb-0.5 line-clamp-2">{item.name}</h3>
                                   <p className="text-orange-600 work-sans-bold text-base">₹{item.price}</p>
+                                  
+                                  {/* Item Rating Display */}
+                                  <div className="mt-1 mb-1">
+                                    <StarRating 
+                                      rating={itemRating} 
+                                      ratingCount={itemRatingCount}
+                                      size="small"
+                                    />
+                                  </div>
+                                  
                                   {item.description && (
                                     <p className="text-xs text-gray-600 mt-1 work-sans-medium leading-relaxed line-clamp-2">
                                       {item.description}
