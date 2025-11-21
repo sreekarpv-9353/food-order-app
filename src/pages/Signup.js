@@ -196,16 +196,16 @@ const Signup = () => {
                 </button>
               </div>
 
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
                 <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white/80 text-gray-500 work-sans-medium">Or continue with</span>
                 </div>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
@@ -219,7 +219,7 @@ const Signup = () => {
                   />
                   Sign up with Google
                 </button>
-              </div>
+              </div> */}
 
               <div className="text-center">
                 <p className="text-gray-600 text-sm work-sans-medium">
