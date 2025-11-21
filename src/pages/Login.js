@@ -73,35 +73,35 @@ const Login = () => {
         </style>
       </Helmet>
       
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30 flex flex-col justify-center py-12 sm:px-6 lg:px-8 work-sans">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50/30 flex flex-col justify-center py-8 sm:py-12 sm:px-6 lg:px-8 work-sans">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="text-center">
-            <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-2xl text-white">🔑</span>
+            <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+              <span className="text-xl text-white">🔑</span>
             </div>
-            <h2 className="text-2xl work-sans-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+            <h2 className="text-xl sm:text-2xl work-sans-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Welcome Back
             </h2>
-            <p className="text-gray-600 text-sm mt-2 work-sans-medium">
+            <p className="text-gray-600 text-xs sm:text-sm mt-1 work-sans-medium">
               Sign in to your FlashFood account
             </p>
           </div>
         </div>
 
-        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white/80 backdrop-blur-lg py-8 px-6 shadow-lg sm:rounded-2xl border border-gray-200/60">
-            <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="mt-6 sm:mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white/80 backdrop-blur-lg py-6 px-4 sm:px-6 shadow-lg sm:rounded-2xl rounded-xl border border-gray-200/60">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               {error && (
-                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl work-sans-medium text-sm">
+                <div className="bg-red-50 border border-red-200 text-red-700 px-3 py-2 rounded-lg work-sans-medium text-xs">
                   {error}
                 </div>
               )}
               
               <div>
-                <label htmlFor="email" className="block text-sm work-sans-medium text-gray-700 mb-2">
+                <label htmlFor="email" className="block text-xs sm:text-sm work-sans-medium text-gray-700 mb-1">
                   Email address
                 </label>
-                <div className="mt-1">
+                <div>
                   <input
                     id="email"
                     name="email"
@@ -110,17 +110,17 @@ const Login = () => {
                     required
                     value={formData.email}
                     onChange={handleChange}
-                    className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent work-sans-medium text-sm"
+                    className="appearance-none block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent work-sans-medium text-sm"
                     placeholder="Enter your email"
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="password" className="block text-sm work-sans-medium text-gray-700 mb-2">
+                <label htmlFor="password" className="block text-xs sm:text-sm work-sans-medium text-gray-700 mb-1">
                   Password
                 </label>
-                <div className="mt-1">
+                <div>
                   <input
                     id="password"
                     name="password"
@@ -129,7 +129,7 @@ const Login = () => {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent work-sans-medium text-sm"
+                    className="appearance-none block w-full px-3 py-2 sm:px-4 sm:py-3 border border-gray-300 rounded-lg sm:rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent work-sans-medium text-sm"
                     placeholder="Enter your password"
                   />
                 </div>
@@ -139,7 +139,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={() => setShowForgotPassword(true)}
-                  className="text-sm work-sans-medium text-orange-600 hover:text-orange-500 transition-colors"
+                  className="text-xs sm:text-sm work-sans-medium text-orange-600 hover:text-orange-500 transition-colors"
                 >
                   Forgot your password?
                 </button>
@@ -149,7 +149,7 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm work-sans-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow-lg active:scale-95"
+                  className="w-full flex justify-center py-2 sm:py-3 px-4 border border-transparent rounded-lg sm:rounded-xl shadow-sm text-sm work-sans-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow active:scale-95"
                 >
                   {loading ? (
                     <div className="flex items-center">
@@ -162,33 +162,33 @@ const Login = () => {
                 </button>
               </div>
 
-              <div className="relative">
+              {/* <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
-                <div className="relative flex justify-center text-sm">
+                <div className="relative flex justify-center text-xs sm:text-sm">
                   <span className="px-2 bg-white/80 text-gray-500 work-sans-medium">Or continue with</span>
                 </div>
-              </div>
+              </div> */}
 
-              <div>
+              {/* <div>
                 <button
                   type="button"
                   onClick={handleGoogleSignIn}
                   disabled={loading}
-                  className="w-full flex items-center justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm work-sans-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow active:scale-95"
+                  className="w-full flex items-center justify-center py-2 sm:py-3 px-4 border border-gray-300 rounded-lg sm:rounded-xl shadow-sm text-sm work-sans-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow active:scale-95"
                 >
                   <img 
                     src="https://www.google.com/favicon.ico" 
                     alt="Google" 
-                    className="w-5 h-5 mr-2"
+                    className="w-4 h-4 sm:w-5 sm:h-5 mr-2"
                   />
                   Sign in with Google
                 </button>
-              </div>
+              </div> */}
 
               <div className="text-center">
-                <p className="text-gray-600 text-sm work-sans-medium">
+                <p className="text-gray-600 text-xs sm:text-sm work-sans-medium">
                   Don't have an account?{' '}
                   <Link to="/signup" className="text-orange-600 hover:text-orange-500 work-sans-semibold transition-colors">
                     Sign up now
