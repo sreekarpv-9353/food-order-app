@@ -5,7 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { updateQuantity, removeFromCart, clearCart } from '../redux/slices/cartSlice';
 import { placeOrder, clearError } from '../redux/slices/orderSlice';
 import { settingsService } from '../services/settingsService';
-import { groceryService } from '../services/groceryService'; // Add this import
+import { groceryService } from '../services/groceryService';
 import { Helmet } from 'react-helmet';
 
 const Cart = () => {
@@ -35,7 +35,7 @@ const Cart = () => {
   const [matchedZoneDetails, setMatchedZoneDetails] = useState(null);
   const [deliveryFeeDetails, setDeliveryFeeDetails] = useState({ fee: 0, matchType: 'default' });
   const [minimumOrderSettings, setMinimumOrderSettings] = useState(null);
-  const [updatingStock, setUpdatingStock] = useState(false); // Add this state
+  const [updatingStock, setUpdatingStock] = useState(false);
 
   // Clear error on component mount
   useEffect(() => {
@@ -588,8 +588,6 @@ const Cart = () => {
         alert(errorMessage);
       } else if (errorMessage.includes('out of stock') || errorMessage.includes('stock') || errorMessage.includes('exceeded')) {
         alert(errorMessage);
-        // Refresh the page to update stock status
-        window.location.reload();
       } else if (errorMessage.includes('inventory') || errorMessage.includes('stock update')) {
         alert(errorMessage);
       } else {
@@ -657,7 +655,7 @@ const Cart = () => {
     !orderValidation.valid || 
     !isDeliveryAvailable || 
     isLoadingSettings ||
-    updatingStock; // Add updatingStock to disabled conditions
+    updatingStock;
 
   return (
     <>
@@ -877,48 +875,66 @@ const Cart = () => {
                             </p>
                           </div>
                           
-                          {/* Quantity Controls */}
-                          <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-2">
-                            <div className={`flex items-center space-x-2 px-2 py-1 rounded-lg ${
-                              isOutOfStock ? 'bg-gray-100' : 'bg-orange-50'
-                            }`}>
+                          {/* Quantity Controls - Hide for out-of-stock items */}
+                          {!isOutOfStock ? (
+                            <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-2">
+                              <div className={`flex items-center space-x-2 px-2 py-1 rounded-lg bg-orange-50`}>
+                                <button
+                                  onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                                  className="w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border bg-white hover:bg-gray-50 border-gray-200 text-gray-600 work-sans-bold min-w-[28px]"
+                                >
+                                  <span className="text-sm">−</span>
+                                </button>
+                                <span className="work-sans-bold min-w-6 text-center text-sm text-gray-800">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                                  disabled={!canAddMore}
+                                  className={`w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border work-sans-bold min-w-[28px] ${
+                                    !canAddMore
+                                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'
+                                      : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'
+                                  }`}
+                                >
+                                  <span className="text-sm">+</span>
+                                </button>
+                              </div>
                               <button
-                                onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                                disabled={isOutOfStock}
-                                className={`w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border work-sans-bold min-w-[28px] ${
-                                  isOutOfStock
-                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'
-                                    : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'
-                                }`}
+                                onClick={() => handleRemoveItem(item.id)}
+                                className="text-xs work-sans-medium whitespace-nowrap text-red-500 hover:text-red-700"
                               >
-                                <span className="text-sm">−</span>
-                              </button>
-                              <span className={`work-sans-bold min-w-6 text-center text-sm ${
-                                isOutOfStock ? 'text-gray-500' : 'text-gray-800'
-                              }`}>
-                                {item.quantity}
-                              </span>
-                              <button
-                                onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                                disabled={!canAddMore || isOutOfStock}
-                                className={`w-7 h-7 rounded flex items-center justify-center shadow-sm transition-colors border work-sans-bold min-w-[28px] ${
-                                  !canAddMore || isOutOfStock
-                                    ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-gray-300'
-                                    : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'
-                                }`}
-                              >
-                                <span className="text-sm">+</span>
+                                Remove
                               </button>
                             </div>
-                            <button
-                              onClick={() => handleRemoveItem(item.id)}
-                              className={`text-xs work-sans-medium whitespace-nowrap ${
-                                isOutOfStock ? 'text-red-400 hover:text-red-500' : 'text-red-500 hover:text-red-700'
-                              }`}
-                            >
-                              Remove
-                            </button>
-                          </div>
+                          ) : (
+                            /* Only show remove button for out-of-stock items */
+                            <div className="flex flex-col items-end space-y-2 flex-shrink-0 ml-2">
+                              <div className="flex items-center space-x-2 px-2 py-1 rounded-lg bg-gray-100 opacity-50">
+                                <button
+                                  disabled
+                                  className="w-7 h-7 rounded flex items-center justify-center bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300 work-sans-bold min-w-[28px]"
+                                >
+                                  <span className="text-sm">−</span>
+                                </button>
+                                <span className="work-sans-bold min-w-6 text-center text-sm text-gray-500">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  disabled
+                                  className="w-7 h-7 rounded flex items-center justify-center bg-gray-200 text-gray-400 cursor-not-allowed border border-gray-300 work-sans-bold min-w-[28px]"
+                                >
+                                  <span className="text-sm">+</span>
+                                </button>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveItem(item.id)}
+                                className="text-xs work-sans-medium whitespace-nowrap text-red-500 hover:text-red-700 bg-red-50 px-2 py-1 rounded border border-red-200"
+                              >
+                                Remove Out of Stock
+                              </button>
+                            </div>
+                          )}
                         </div>
 
                         {/* Stock Information and Total Price */}

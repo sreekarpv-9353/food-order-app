@@ -2,14 +2,17 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { signInUser, clearError } from '../redux/slices/authSlice';
+import { signInUser, signInWithGoogle, clearError } from '../redux/slices/authSlice';
 import { Helmet } from 'react-helmet';
+import ForgotPassword from '../components/ForgotPassword';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
+  
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const { loading, error } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
@@ -30,6 +33,15 @@ const Login = () => {
       navigate('/');
     } catch (error) {
       console.error('Login failed:', error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await dispatch(signInWithGoogle()).unwrap();
+      navigate('/');
+    } catch (error) {
+      console.error('Google sign in failed:', error);
     }
   };
 
@@ -123,6 +135,16 @@ const Login = () => {
                 </div>
               </div>
 
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-sm work-sans-medium text-orange-600 hover:text-orange-500 transition-colors"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+
               <div>
                 <button
                   type="submit"
@@ -140,6 +162,31 @@ const Login = () => {
                 </button>
               </div>
 
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white/80 text-gray-500 work-sans-medium">Or continue with</span>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm work-sans-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow active:scale-95"
+                >
+                  <img 
+                    src="https://www.google.com/favicon.ico" 
+                    alt="Google" 
+                    className="w-5 h-5 mr-2"
+                  />
+                  Sign in with Google
+                </button>
+              </div>
+
               <div className="text-center">
                 <p className="text-gray-600 text-sm work-sans-medium">
                   Don't have an account?{' '}
@@ -152,6 +199,13 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {showForgotPassword && (
+        <ForgotPassword 
+          onClose={() => setShowForgotPassword(false)}
+          showLogin={() => setShowForgotPassword(false)}
+        />
+      )}
     </>
   );
 };

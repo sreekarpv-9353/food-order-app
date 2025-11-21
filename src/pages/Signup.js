@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { signUpUser, clearError } from '../redux/slices/authSlice';
+import { signUpUser, signInWithGoogle, clearError } from '../redux/slices/authSlice';
 import { Helmet } from 'react-helmet';
 
 const Signup = () => {
@@ -42,6 +42,15 @@ const Signup = () => {
       navigate('/');
     } catch (error) {
       console.error('Signup failed:', error);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await dispatch(signInWithGoogle()).unwrap();
+      navigate('/');
+    } catch (error) {
+      console.error('Google sign in failed:', error);
     }
   };
 
@@ -184,6 +193,31 @@ const Signup = () => {
                   ) : (
                     'Create FlashFood Account'
                   )}
+                </button>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white/80 text-gray-500 work-sans-medium">Or continue with</span>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center py-3 px-4 border border-gray-300 rounded-xl shadow-sm text-sm work-sans-semibold text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 disabled:opacity-50 transition-all duration-200 hover:shadow active:scale-95"
+                >
+                  <img 
+                    src="https://www.google.com/favicon.ico" 
+                    alt="Google" 
+                    className="w-5 h-5 mr-2"
+                  />
+                  Sign up with Google
                 </button>
               </div>
 
